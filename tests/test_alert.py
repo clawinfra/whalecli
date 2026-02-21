@@ -22,7 +22,6 @@ from whalecli.config import AlertConfig, WhalecliConfig
 from whalecli.db import Database
 from whalecli.scorer import score_to_severity
 
-
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
 
@@ -258,9 +257,7 @@ async def test_dispatch_webhook_success(respx_mock) -> None:
         "score_breakdown": {},
     }
 
-    respx_mock.post("https://hooks.example.com/whale").mock(
-        return_value=httpx.Response(200)
-    )
+    respx_mock.post("https://hooks.example.com/whale").mock(return_value=httpx.Response(200))
 
     status = await dispatch_webhook(alert, config)
     assert status == 200
@@ -299,9 +296,7 @@ async def test_dispatch_webhook_timeout_returns_none(respx_mock) -> None:
 
 def test_scan_summary_all_accumulating() -> None:
     """All accumulating → dominant_signal = accumulating."""
-    wallets = [
-        make_wallet(direction="accumulating") for _ in range(5)
-    ]
+    wallets = [make_wallet(direction="accumulating") for _ in range(5)]
     summary = compute_scan_summary(wallets, [])
     assert summary["dominant_signal"] == "accumulating"
     assert summary["accumulating"] == 5

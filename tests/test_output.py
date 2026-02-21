@@ -20,7 +20,6 @@ from whalecli.output import (
     mask_api_key,
 )
 
-
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
 
@@ -90,8 +89,20 @@ def make_wallet_list() -> dict[str, Any]:
     return {
         "count": 2,
         "wallets": [
-            {"address": "0xaaa", "chain": "ETH", "label": "Whale A", "tags": [], "added_at": "2026-01-01T00:00:00+00:00"},
-            {"address": "bc1qtest", "chain": "BTC", "label": "BTC Whale", "tags": ["exchange"], "added_at": "2026-01-02T00:00:00+00:00"},
+            {
+                "address": "0xaaa",
+                "chain": "ETH",
+                "label": "Whale A",
+                "tags": [],
+                "added_at": "2026-01-01T00:00:00+00:00",
+            },
+            {
+                "address": "bc1qtest",
+                "chain": "BTC",
+                "label": "BTC Whale",
+                "tags": ["exchange"],
+                "added_at": "2026-01-02T00:00:00+00:00",
+            },
         ],
     }
 
@@ -99,7 +110,14 @@ def make_wallet_list() -> dict[str, Any]:
 def make_alert_list() -> dict[str, Any]:
     return {
         "rules": [
-            {"id": "rule_001", "type": "score", "value": 70.0, "window": "1h", "chain": "ETH", "active": True},
+            {
+                "id": "rule_001",
+                "type": "score",
+                "value": 70.0,
+                "window": "1h",
+                "chain": "ETH",
+                "active": True,
+            },
         ],
         "recent_alerts": [
             {

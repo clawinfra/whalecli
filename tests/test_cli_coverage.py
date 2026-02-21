@@ -40,11 +40,17 @@ def test_wallet_list_csv_format(runner: CliRunner, config_env: str) -> None:
 
 def test_alert_set_flow_threshold(runner: CliRunner, config_env: str) -> None:
     """alert set --threshold should create a flow-type rule."""
-    result = runner.invoke(cli, [
-        "alert", "set",
-        "--threshold", "5000000",
-        "--window", "4h",
-    ])
+    result = runner.invoke(
+        cli,
+        [
+            "alert",
+            "set",
+            "--threshold",
+            "5000000",
+            "--window",
+            "4h",
+        ],
+    )
     assert result.exit_code == 0
     output = json.loads(result.output)
     assert output["rule"]["type"] == "flow"
@@ -53,11 +59,17 @@ def test_alert_set_flow_threshold(runner: CliRunner, config_env: str) -> None:
 
 def test_alert_set_with_chain(runner: CliRunner, config_env: str) -> None:
     """alert set with --chain filter."""
-    result = runner.invoke(cli, [
-        "alert", "set",
-        "--score", "80",
-        "--chain", "BTC",
-    ])
+    result = runner.invoke(
+        cli,
+        [
+            "alert",
+            "set",
+            "--score",
+            "80",
+            "--chain",
+            "BTC",
+        ],
+    )
     assert result.exit_code == 0
     output = json.loads(result.output)
     assert output["rule"]["chain"] == "BTC"
@@ -93,12 +105,18 @@ def test_config_init_force_overwrites(runner: CliRunner, tmp_path: Path) -> None
 
 def test_wallet_add_btc(runner: CliRunner, config_env: str) -> None:
     """wallet add should work for BTC addresses."""
-    result = runner.invoke(cli, [
-        "wallet", "add",
-        "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
-        "--chain", "BTC",
-        "--label", "BTC Whale",
-    ])
+    result = runner.invoke(
+        cli,
+        [
+            "wallet",
+            "add",
+            "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+            "--chain",
+            "BTC",
+            "--label",
+            "BTC Whale",
+        ],
+    )
     assert result.exit_code == 0
     output = json.loads(result.output)
     assert output["wallet"]["chain"] == "BTC"
@@ -106,13 +124,20 @@ def test_wallet_add_btc(runner: CliRunner, config_env: str) -> None:
 
 def test_wallet_add_with_tags(runner: CliRunner, config_env: str) -> None:
     """wallet add with tags should save them."""
-    result = runner.invoke(cli, [
-        "wallet", "add",
-        "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
-        "--chain", "ETH",
-        "--tag", "exchange",
-        "--tag", "binance",
-    ])
+    result = runner.invoke(
+        cli,
+        [
+            "wallet",
+            "add",
+            "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+            "--chain",
+            "ETH",
+            "--tag",
+            "exchange",
+            "--tag",
+            "binance",
+        ],
+    )
     assert result.exit_code == 0
     output = json.loads(result.output)
     assert "exchange" in output["wallet"]["tags"]
@@ -128,22 +153,32 @@ def test_wallet_add_duplicate(runner: CliRunner, config_env: str) -> None:
 
 def test_report_wallet_not_tracked(runner: CliRunner, config_env: str) -> None:
     """report for untracked wallet should fail."""
-    result = runner.invoke(cli, [
-        "report",
-        "--wallet", "0xnottracked",
-        "--chain", "ETH",
-    ])
+    result = runner.invoke(
+        cli,
+        [
+            "report",
+            "--wallet",
+            "0xnottracked",
+            "--chain",
+            "ETH",
+        ],
+    )
     assert result.exit_code != 0
 
 
 def test_report_summary_with_wallets(runner: CliRunner, config_env: str) -> None:
     """report --summary with wallets in DB returns full report."""
     # Add a wallet
-    runner.invoke(cli, [
-        "wallet", "add",
-        "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
-        "--chain", "ETH",
-    ])
+    runner.invoke(
+        cli,
+        [
+            "wallet",
+            "add",
+            "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+            "--chain",
+            "ETH",
+        ],
+    )
 
     result = runner.invoke(cli, ["report", "--summary", "--days", "7"])
     assert result.exit_code == 0
@@ -162,15 +197,18 @@ def test_scan_format_table(
     mock_fetch.return_value = []
 
     # Add a wallet
-    runner.invoke(cli, [
-        "wallet", "add",
-        "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
-        "--chain", "ETH",
-    ])
+    runner.invoke(
+        cli,
+        [
+            "wallet",
+            "add",
+            "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+            "--chain",
+            "ETH",
+        ],
+    )
 
-    result = runner.invoke(cli, [
-        "scan", "--chain", "ETH", "--format", "table"
-    ])
+    result = runner.invoke(cli, ["scan", "--chain", "ETH", "--format", "table"])
     assert result.exit_code == 0
 
 
@@ -183,15 +221,18 @@ def test_scan_format_jsonl(
     """scan --format jsonl emits JSONL events."""
     mock_fetch.return_value = []
 
-    runner.invoke(cli, [
-        "wallet", "add",
-        "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
-        "--chain", "ETH",
-    ])
+    runner.invoke(
+        cli,
+        [
+            "wallet",
+            "add",
+            "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+            "--chain",
+            "ETH",
+        ],
+    )
 
-    result = runner.invoke(cli, [
-        "scan", "--chain", "ETH", "--format", "jsonl"
-    ])
+    result = runner.invoke(cli, ["scan", "--chain", "ETH", "--format", "jsonl"])
     assert result.exit_code == 0
     for line in result.output.strip().split("\n"):
         if line.strip():
@@ -207,11 +248,16 @@ def test_scan_all_flag(
     """scan --all scans all tracked wallets."""
     mock_fetch.return_value = []
 
-    runner.invoke(cli, [
-        "wallet", "add",
-        "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
-        "--chain", "ETH",
-    ])
+    runner.invoke(
+        cli,
+        [
+            "wallet",
+            "add",
+            "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+            "--chain",
+            "ETH",
+        ],
+    )
 
     result = runner.invoke(cli, ["scan", "--all"])
     assert result.exit_code == 0
@@ -230,10 +276,15 @@ def test_wallet_remove_purge(runner: CliRunner, config_env: str) -> None:
 
 def test_global_format_override(runner: CliRunner, config_env: str) -> None:
     """--format flag at root level should override default output format."""
-    result = runner.invoke(cli, [
-        "--format", "json",
-        "wallet", "list",
-    ])
+    result = runner.invoke(
+        cli,
+        [
+            "--format",
+            "json",
+            "wallet",
+            "list",
+        ],
+    )
     assert result.exit_code == 0
     output = json.loads(result.output)
     assert "wallets" in output
@@ -263,10 +314,17 @@ def test_config_set_invalid_section(runner: CliRunner, config_env: str, tmp_path
     """config set with invalid section should fail."""
     config_path = tmp_path / "cfg.toml"
     runner.invoke(cli, ["--config", str(config_path), "config", "init"])
-    result = runner.invoke(cli, [
-        "--config", str(config_path),
-        "config", "set", "nonexistent.key", "value",
-    ])
+    result = runner.invoke(
+        cli,
+        [
+            "--config",
+            str(config_path),
+            "config",
+            "set",
+            "nonexistent.key",
+            "value",
+        ],
+    )
     assert result.exit_code != 0
 
 
@@ -274,10 +332,17 @@ def test_config_set_invalid_key(runner: CliRunner, config_env: str, tmp_path) ->
     """config set with invalid key within valid section should fail."""
     config_path = tmp_path / "cfg.toml"
     runner.invoke(cli, ["--config", str(config_path), "config", "init"])
-    result = runner.invoke(cli, [
-        "--config", str(config_path),
-        "config", "set", "alert.nonexistent_field", "value",
-    ])
+    result = runner.invoke(
+        cli,
+        [
+            "--config",
+            str(config_path),
+            "config",
+            "set",
+            "alert.nonexistent_field",
+            "value",
+        ],
+    )
     assert result.exit_code != 0
 
 
@@ -285,10 +350,17 @@ def test_config_set_bool_value(runner: CliRunner, tmp_path) -> None:
     """config set should handle boolean values."""
     config_path = tmp_path / "config.toml"
     runner.invoke(cli, ["--config", str(config_path), "config", "init"])
-    result = runner.invoke(cli, [
-        "--config", str(config_path),
-        "config", "set", "output.color", "false",
-    ])
+    result = runner.invoke(
+        cli,
+        [
+            "--config",
+            str(config_path),
+            "config",
+            "set",
+            "output.color",
+            "false",
+        ],
+    )
     assert result.exit_code == 0
     output = json.loads(result.output)
     assert output["status"] == "updated"
@@ -298,8 +370,7 @@ def test_wallet_import_csv_dry_run(runner: CliRunner, config_env: str, tmp_path)
     """wallet import --dry-run should not persist wallets."""
     csv_file = tmp_path / "wallets.csv"
     csv_file.write_text(
-        "address,chain,label,tags\n"
-        "0xd8da6bf26964af9d7eed9e03e53415d37aa96045,ETH,Whale A,\n"
+        "address,chain,label,tags\n" "0xd8da6bf26964af9d7eed9e03e53415d37aa96045,ETH,Whale A,\n"
     )
     result = runner.invoke(cli, ["wallet", "import", str(csv_file), "--dry-run"])
     assert result.exit_code == 0

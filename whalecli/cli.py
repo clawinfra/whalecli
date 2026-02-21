@@ -94,6 +94,7 @@ def cli(ctx: click.Context, config_path: str | None, output_format: str | None) 
     except WhalecliError as e:
         # On config errors, use defaults (so config init still works)
         from whalecli.config import WhalecliConfig
+
         config = WhalecliConfig()
 
     ctx.obj["config"] = config
@@ -115,7 +116,8 @@ def wallet() -> None:
 @click.option("--label", default="", help="Human-readable label")
 @click.option("--tag", "tags", multiple=True, help="Tags (repeatable)")
 @click.option(
-    "--format", "fmt",
+    "--format",
+    "fmt",
     type=click.Choice(["json", "table"]),
     default=None,
 )
@@ -138,14 +140,13 @@ def wallet_add(
             fetcher = _get_fetcher_safe(chain, config)
             if fetcher and not await fetcher.validate_address(address):
                 from whalecli.exceptions import InvalidAddressError
+
                 raise InvalidAddressError(
                     f"Invalid {chain} address: {address!r}",
                     details={"address": address, "chain": chain},
                 )
 
-            wallet_data = await db.add_wallet(
-                address, chain, label, list(tags)
-            )
+            wallet_data = await db.add_wallet(address, chain, label, list(tags))
             added_at = wallet_data.get("added_at", "")
             result = {
                 "status": "added",
@@ -170,7 +171,8 @@ def wallet_add(
 @click.option("--chain", type=click.Choice(SUPPORTED_CHAINS), default=None)
 @click.option("--tag", "tags", multiple=True, help="Filter by tag")
 @click.option(
-    "--format", "fmt",
+    "--format",
+    "fmt",
     type=click.Choice(["json", "table", "csv"]),
     default=None,
 )
@@ -205,9 +207,7 @@ def wallet_list(
 @click.option("--chain", required=True, type=click.Choice(SUPPORTED_CHAINS))
 @click.option("--purge", is_flag=True, help="Also delete cached transactions")
 @click.pass_context
-def wallet_remove(
-    ctx: click.Context, address: str, chain: str, purge: bool
-) -> None:
+def wallet_remove(ctx: click.Context, address: str, chain: str, purge: bool) -> None:
     """Remove a tracked wallet (soft delete; keeps tx history unless --purge)."""
     config: WhalecliConfig = ctx.obj["config"]
 
@@ -239,9 +239,13 @@ def wallet_import_cmd(ctx: click.Context, file_path: str, dry_run: bool) -> None
     try:
         asyncio.run(_run())
     except (WhalecliError, ValueError) as e:
-        _output_error(e) if isinstance(e, WhalecliError) else (
-            sys.stderr.write(json.dumps({"error": "cli_error", "message": str(e)}) + "\n")
-            or sys.exit(1)
+        (
+            _output_error(e)
+            if isinstance(e, WhalecliError)
+            else (
+                sys.stderr.write(json.dumps({"error": "cli_error", "message": str(e)}) + "\n")
+                or sys.exit(1)
+            )
         )
 
 
@@ -265,7 +269,8 @@ def _parse_wallet_csv(file_path: str) -> list[dict[str, Any]]:
 @click.option("--hours", default=24, type=click.IntRange(1, 720), show_default=True)
 @click.option("--threshold", default=0, type=click.IntRange(0, 100), show_default=True)
 @click.option(
-    "--format", "fmt",
+    "--format",
+    "fmt",
     type=click.Choice(["json", "jsonl", "table", "csv"]),
     default=None,
 )
@@ -286,10 +291,15 @@ def scan_command(
     fmt = fmt or ctx.obj.get("format", "json")
 
     if not chain and not wallet_addr and not include_all:
-        sys.stderr.write(json.dumps({
-            "error": "cli_error",
-            "message": "Provide --chain, --wallet, or --all",
-        }) + "\n")
+        sys.stderr.write(
+            json.dumps(
+                {
+                    "error": "cli_error",
+                    "message": "Provide --chain, --wallet, or --all",
+                }
+            )
+            + "\n"
+        )
         sys.exit(1)
 
     async def _run() -> dict[str, Any]:
@@ -306,12 +316,14 @@ def scan_command(
                     wallets = [w]
                 except WhalecliError:
                     # Wallet not in DB — scan it ad-hoc
-                    wallets = [{
-                        "address": wallet_addr,
-                        "chain": target_chain,
-                        "label": "",
-                        "tags": [],
-                    }]
+                    wallets = [
+                        {
+                            "address": wallet_addr,
+                            "chain": target_chain,
+                            "label": "",
+                            "tags": [],
+                        }
+                    ]
             elif include_all or chain == "ALL" or not chain:
                 query_chain = None if (include_all or chain == "ALL") else chain
                 wallets = await db.list_wallets(chain=query_chain)
@@ -320,6 +332,7 @@ def scan_command(
 
             if not wallets:
                 from whalecli.exceptions import DataError
+
                 raise DataError(
                     "No wallets tracked. Add wallets with `whalecli wallet add`.",
                     details={"chain": chain},
@@ -343,14 +356,12 @@ def scan_command(
                 except ValueError:
                     continue
 
-                tasks = [
-                    _fetch_wallet_txns(w, hours, fetcher)
-                    for w in chain_wallets
-                ]
+                tasks = [_fetch_wallet_txns(w, hours, fetcher) for w in chain_wallets]
                 results = await asyncio.gather(*tasks, return_exceptions=True)
 
                 for w, txn_result in zip(chain_wallets, results):
-                    if isinstance(txn_result, Exception):
+                    txns: list[Any]
+                    if isinstance(txn_result, (Exception, BaseException)):
                         txns = []
                     else:
                         txns = txn_result or []
@@ -362,7 +373,9 @@ def scan_command(
                     key = f"{w['address']}:{wchain}"
                     txns = wallet_txns.get(key, [])
                     hist = await db.get_score_history(w["address"], wchain, days=30)
-                    avg_flow = sum(abs(h.get("net_flow_usd") or 0.0) for h in hist) / max(len(hist), 1)
+                    avg_flow = sum(abs(h.get("net_flow_usd") or 0.0) for h in hist) / max(
+                        len(hist), 1
+                    )
                     scored = score_wallet(
                         address=w["address"],
                         chain=wchain,
@@ -378,8 +391,7 @@ def scan_command(
 
                 # Build directions map for correlation pass
                 directions_map = {
-                    addr: s.get("direction", "neutral")
-                    for addr, s in raw_scores.items()
+                    addr: s.get("direction", "neutral") for addr, s in raw_scores.items()
                 }
 
                 # Second pass: rescore with correlation
@@ -387,13 +399,13 @@ def scan_command(
                     key = f"{w['address']}:{wchain}"
                     txns = wallet_txns.get(key, [])
                     hist = await db.get_score_history(w["address"], wchain, days=30)
-                    avg_flow = sum(abs(h.get("net_flow_usd") or 0.0) for h in hist) / max(len(hist), 1)
+                    avg_flow = sum(abs(h.get("net_flow_usd") or 0.0) for h in hist) / max(
+                        len(hist), 1
+                    )
 
                     # Peer directions = all other wallets in same chain
                     peer_directions = {
-                        addr: d
-                        for addr, d in directions_map.items()
-                        if addr != w["address"]
+                        addr: d for addr, d in directions_map.items() if addr != w["address"]
                     }
 
                     scored = score_wallet(
@@ -414,19 +426,21 @@ def scan_command(
                         continue
 
                     # Persist score snapshot
-                    await db.save_score({
-                        "address": scored["address"],
-                        "chain": scored["chain"],
-                        "computed_at": scored["computed_at"],
-                        "window_hours": hours,
-                        "total": scored["score"],
-                        "net_flow": scored["score_breakdown"]["net_flow"],
-                        "velocity": scored["score_breakdown"]["velocity"],
-                        "correlation": scored["score_breakdown"]["correlation"],
-                        "exchange_flow": scored["score_breakdown"]["exchange_flow"],
-                        "net_flow_usd": scored["net_flow_usd"],
-                        "direction": scored["direction"],
-                    })
+                    await db.save_score(
+                        {
+                            "address": scored["address"],
+                            "chain": scored["chain"],
+                            "computed_at": scored["computed_at"],
+                            "window_hours": hours,
+                            "total": scored["score"],
+                            "net_flow": scored["score_breakdown"]["net_flow"],
+                            "velocity": scored["score_breakdown"]["velocity"],
+                            "correlation": scored["score_breakdown"]["correlation"],
+                            "exchange_flow": scored["score_breakdown"]["exchange_flow"],
+                            "net_flow_usd": scored["net_flow_usd"],
+                            "direction": scored["direction"],
+                        }
+                    )
 
                     scored_wallets.append(scored)
 
@@ -463,9 +477,7 @@ def scan_command(
         _output_error(e)
 
 
-async def _fetch_wallet_txns(
-    wallet: dict[str, Any], hours: int, fetcher: Any
-) -> list:
+async def _fetch_wallet_txns(wallet: dict[str, Any], hours: int, fetcher: Any) -> list:
     """Fetch transactions for one wallet; return empty list on error."""
     try:
         return await fetcher.get_transactions(wallet["address"], hours)
@@ -503,10 +515,15 @@ def alert_set(
     fmt = fmt or ctx.obj.get("format", "json")
 
     if threshold is None and score is None:
-        sys.stderr.write(json.dumps({
-            "error": "cli_error",
-            "message": "Provide --threshold or --score",
-        }) + "\n")
+        sys.stderr.write(
+            json.dumps(
+                {
+                    "error": "cli_error",
+                    "message": "Provide --threshold or --score",
+                }
+            )
+            + "\n"
+        )
         sys.exit(1)
 
     async def _run() -> None:
@@ -515,7 +532,9 @@ def alert_set(
             rule: dict[str, Any] = {
                 "id": rule_id,
                 "type": "score" if score is not None else "flow",
-                "value": float(score if score is not None else threshold),
+                "value": float(
+                    score if score is not None else (threshold if threshold is not None else 0)
+                ),
                 "window": window,
                 "chain": chain,
                 "webhook_url": webhook_url,
@@ -611,7 +630,8 @@ def stream_command(
 @click.option("--days", default=7, type=int, show_default=True)
 @click.option("--summary", is_flag=True)
 @click.option(
-    "--format", "fmt",
+    "--format",
+    "fmt",
     type=click.Choice(["json", "table", "csv"]),
     default=None,
 )
@@ -629,10 +649,15 @@ def report_command(
     fmt = fmt or ctx.obj.get("format", "json")
 
     if not wallet_addr and not summary:
-        sys.stderr.write(json.dumps({
-            "error": "cli_error",
-            "message": "Provide --wallet <address> or --summary",
-        }) + "\n")
+        sys.stderr.write(
+            json.dumps(
+                {
+                    "error": "cli_error",
+                    "message": "Provide --wallet <address> or --summary",
+                }
+            )
+            + "\n"
+        )
         sys.exit(1)
 
     async def _run() -> dict[str, Any]:
@@ -652,29 +677,31 @@ def report_command(
                     peak_score = max((h.get("total_score", 0) for h in history), default=0)
                     alert_count = sum(1 for h in history if h.get("alert_triggered"))
                     direction = (
-                        "accumulating" if net_flow > 0
-                        else "distributing" if net_flow < 0
-                        else "neutral"
+                        "accumulating"
+                        if net_flow > 0
+                        else "distributing" if net_flow < 0 else "neutral"
                     )
                     agg_net += net_flow
                     total_alerts += alert_count
                     chain_counts[w["chain"]] = chain_counts.get(w["chain"], 0) + 1
 
-                    report_rows.append({
-                        "address": w["address"],
-                        "chain": w["chain"],
-                        "label": w.get("label", ""),
-                        "net_flow_usd": net_flow,
-                        "peak_score": peak_score,
-                        "alerts_triggered": alert_count,
-                        "dominant_direction": direction,
-                    })
+                    report_rows.append(
+                        {
+                            "address": w["address"],
+                            "chain": w["chain"],
+                            "label": w.get("label", ""),
+                            "net_flow_usd": net_flow,
+                            "peak_score": peak_score,
+                            "alerts_triggered": alert_count,
+                            "dominant_direction": direction,
+                        }
+                    )
 
-                most_active = max(chain_counts, key=lambda c: chain_counts[c]) if chain_counts else None
+                most_active = (
+                    max(chain_counts, key=lambda c: chain_counts[c]) if chain_counts else None
+                )
                 agg_direction = (
-                    "accumulating" if agg_net > 0
-                    else "distributing" if agg_net < 0
-                    else "neutral"
+                    "accumulating" if agg_net > 0 else "distributing" if agg_net < 0 else "neutral"
                 )
 
                 report_id = f"summary_{datetime.now(tz=timezone.utc).strftime('%Y%m%d_%H%M%S')}"
@@ -701,21 +728,16 @@ def report_command(
                 net_flow = sum(h.get("net_flow_usd") or 0.0 for h in history)
                 peak_score = max((h.get("total_score", 0) for h in history), default=0)
                 avg_score = (
-                    sum(h.get("total_score", 0) for h in history) // len(history)
-                    if history else 0
+                    sum(h.get("total_score", 0) for h in history) // len(history) if history else 0
                 )
-                total_inflow = sum(
-                    max(h.get("net_flow_usd") or 0.0, 0) for h in history
-                )
-                total_outflow = abs(sum(
-                    min(h.get("net_flow_usd") or 0.0, 0) for h in history
-                ))
+                total_inflow = sum(max(h.get("net_flow_usd") or 0.0, 0) for h in history)
+                total_outflow = abs(sum(min(h.get("net_flow_usd") or 0.0, 0) for h in history))
                 total_alerts = sum(1 for h in history if h.get("alert_triggered"))
                 tx_count = 0  # tx history not in scores table; approximate
                 direction = (
-                    "accumulating" if net_flow > 0
-                    else "distributing" if net_flow < 0
-                    else "neutral"
+                    "accumulating"
+                    if net_flow > 0
+                    else "distributing" if net_flow < 0 else "neutral"
                 )
 
                 # Daily breakdown from score history
@@ -724,14 +746,16 @@ def report_command(
                     comp_at = h.get("computed_at", "")
                     date_str = comp_at[:10] if comp_at else ""
                     nf = h.get("net_flow_usd") or 0.0
-                    daily.append({
-                        "date": date_str,
-                        "inflow_usd": max(nf, 0.0),
-                        "outflow_usd": abs(min(nf, 0.0)),
-                        "net_flow_usd": nf,
-                        "score": h.get("total_score", 0),
-                        "tx_count": 0,
-                    })
+                    daily.append(
+                        {
+                            "date": date_str,
+                            "inflow_usd": max(nf, 0.0),
+                            "outflow_usd": abs(min(nf, 0.0)),
+                            "net_flow_usd": nf,
+                            "score": h.get("total_score", 0),
+                            "tx_count": 0,
+                        }
+                    )
 
                 report_id = f"report_{datetime.now(tz=timezone.utc).strftime('%Y%m%d_%H%M%S')}"
                 return {
@@ -781,11 +805,15 @@ def config_init(ctx: click.Context, force: bool) -> None:
     config_path = Path(provided) if provided else get_default_config_path()
 
     if config_path.exists() and not force:
-        click.echo(json.dumps({
-            "status": "already_exists",
-            "config_path": str(config_path),
-            "hint": "Use --force to reinitialize",
-        }))
+        click.echo(
+            json.dumps(
+                {
+                    "status": "already_exists",
+                    "config_path": str(config_path),
+                    "hint": "Use --force to reinitialize",
+                }
+            )
+        )
         return
 
     status = "initialized"
@@ -794,6 +822,7 @@ def config_init(ctx: click.Context, force: bool) -> None:
     if config_path.exists() and force:
         backup = str(config_path) + ".bak"
         import shutil
+
         shutil.copy2(config_path, backup)
         status = "reinitialized"
 
@@ -821,26 +850,41 @@ def config_set(ctx: click.Context, key: str, value: str) -> None:
 
     parts = key.split(".", 1)
     if len(parts) != 2:
-        sys.stderr.write(json.dumps({
-            "error": "cli_error",
-            "message": f"Key must be in form section.key, got: {key!r}",
-        }) + "\n")
+        sys.stderr.write(
+            json.dumps(
+                {
+                    "error": "cli_error",
+                    "message": f"Key must be in form section.key, got: {key!r}",
+                }
+            )
+            + "\n"
+        )
         sys.exit(1)
 
     section_name, field_name = parts
     section = getattr(config, section_name, None)
     if section is None:
-        sys.stderr.write(json.dumps({
-            "error": "config_invalid",
-            "message": f"Unknown config section: {section_name!r}",
-        }) + "\n")
+        sys.stderr.write(
+            json.dumps(
+                {
+                    "error": "config_invalid",
+                    "message": f"Unknown config section: {section_name!r}",
+                }
+            )
+            + "\n"
+        )
         sys.exit(5)
 
     if not hasattr(section, field_name):
-        sys.stderr.write(json.dumps({
-            "error": "config_invalid",
-            "message": f"Unknown config key: {key!r}",
-        }) + "\n")
+        sys.stderr.write(
+            json.dumps(
+                {
+                    "error": "config_invalid",
+                    "message": f"Unknown config key: {key!r}",
+                }
+            )
+            + "\n"
+        )
         sys.exit(5)
 
     # Type-coerce
@@ -862,7 +906,9 @@ def config_set(ctx: click.Context, key: str, value: str) -> None:
     save_config(config, config_path)
 
     # Mask API keys in response
-    display_value = mask_api_key(str(typed_value)) if "api_key" in field_name.lower() else typed_value
+    display_value = (
+        mask_api_key(str(typed_value)) if "api_key" in field_name.lower() else typed_value
+    )
     click.echo(json.dumps({"status": "updated", "key": key, "value": display_value}))
 
 
@@ -913,6 +959,7 @@ def _get_fetcher_safe(chain: str, config: WhalecliConfig) -> Any | None:
     """Return fetcher for chain, or None if unavailable."""
     try:
         from whalecli.fetchers import get_fetcher
+
         return get_fetcher(chain, config)
     except (ValueError, ImportError):
         return None

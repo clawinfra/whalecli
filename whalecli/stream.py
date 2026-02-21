@@ -84,13 +84,15 @@ async def run_stream(
     cycle = 0
     total_alerts = 0
 
-    emit_event({
-        "type": "stream_start",
-        "timestamp": _now_iso(),
-        "chain": chain_display,
-        "interval_secs": interval_seconds,
-        "threshold": threshold,
-    })
+    emit_event(
+        {
+            "type": "stream_start",
+            "timestamp": _now_iso(),
+            "chain": chain_display,
+            "interval_secs": interval_seconds,
+            "threshold": threshold,
+        }
+    )
 
     try:
         while True:
@@ -102,28 +104,27 @@ async def run_stream(
                 wallets_checked = len(scored_wallets)
 
                 # First pass: compute all directions for correlation
-                directions = {
-                    w["address"]: w.get("direction", "neutral")
-                    for w in scored_wallets
-                }
+                directions = {w["address"]: w.get("direction", "neutral") for w in scored_wallets}
 
                 for wallet in scored_wallets:
                     score = wallet.get("score", 0)
                     event_type = "whale_alert" if score >= threshold else "whale_activity"
-                    emit_event({
-                        "type": event_type,
-                        "timestamp": _now_iso(),
-                        "address": wallet.get("address", ""),
-                        "chain": wallet.get("chain", ""),
-                        "label": wallet.get("label", ""),
-                        "score": score,
-                        "score_breakdown": wallet.get("score_breakdown", {}),
-                        "direction": wallet.get("direction", "neutral"),
-                        "net_flow_usd": wallet.get("net_flow_usd", 0.0),
-                        "tx_count_in_window": wallet.get("tx_count", 0),
-                        "alert_triggered": score >= threshold,
-                        "cycle": cycle,
-                    })
+                    emit_event(
+                        {
+                            "type": event_type,
+                            "timestamp": _now_iso(),
+                            "address": wallet.get("address", ""),
+                            "chain": wallet.get("chain", ""),
+                            "label": wallet.get("label", ""),
+                            "score": score,
+                            "score_breakdown": wallet.get("score_breakdown", {}),
+                            "direction": wallet.get("direction", "neutral"),
+                            "net_flow_usd": wallet.get("net_flow_usd", 0.0),
+                            "tx_count_in_window": wallet.get("tx_count", 0),
+                            "alert_triggered": score >= threshold,
+                            "cycle": cycle,
+                        }
+                    )
 
                 # Process alerts (dedup + webhook) for high-score wallets
                 above_threshold = [w for w in scored_wallets if w.get("score", 0) >= threshold]
@@ -132,31 +133,37 @@ async def run_stream(
                     total_alerts += len(new_alerts)
 
             except (WhalecliError, NetworkError) as e:
-                emit_event({
-                    "type": "stream_error",
-                    "timestamp": _now_iso(),
-                    "error_code": getattr(e, "error_code", "error"),
-                    "message": str(e),
-                    "recoverable": True,
-                    "cycle": cycle,
-                })
+                emit_event(
+                    {
+                        "type": "stream_error",
+                        "timestamp": _now_iso(),
+                        "error_code": getattr(e, "error_code", "error"),
+                        "message": str(e),
+                        "recoverable": True,
+                        "cycle": cycle,
+                    }
+                )
 
-            emit_event({
-                "type": "heartbeat",
-                "timestamp": _now_iso(),
-                "cycle": cycle,
-                "wallets_checked": wallets_checked,
-            })
+            emit_event(
+                {
+                    "type": "heartbeat",
+                    "timestamp": _now_iso(),
+                    "cycle": cycle,
+                    "wallets_checked": wallets_checked,
+                }
+            )
 
             await asyncio.sleep(interval_seconds)
 
     except (KeyboardInterrupt, asyncio.CancelledError):
-        emit_event({
-            "type": "stream_end",
-            "timestamp": _now_iso(),
-            "cycles_completed": cycle,
-            "total_alerts": total_alerts,
-        })
+        emit_event(
+            {
+                "type": "stream_end",
+                "timestamp": _now_iso(),
+                "cycles_completed": cycle,
+                "total_alerts": total_alerts,
+            }
+        )
         return  # Caller (CLI) is responsible for sys.exit(130)
 
 
@@ -188,14 +195,11 @@ async def _poll_cycle(
         exchange_addrs = load_exchange_addresses(chain)
 
         # Fetch transactions concurrently for all wallets
-        tasks = [
-            _fetch_and_score(wallet, hours, fetcher, exchange_addrs, db)
-            for wallet in wallets
-        ]
+        tasks = [_fetch_and_score(wallet, hours, fetcher, exchange_addrs, db) for wallet in wallets]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         for result in results:
-            if isinstance(result, Exception):
+            if isinstance(result, (Exception, BaseException)):
                 continue
             if result is not None:
                 scored.append(result)
@@ -212,14 +216,13 @@ async def _fetch_and_score(
 ) -> dict[str, Any] | None:
     """Fetch transactions for a single wallet and compute its score."""
     from datetime import timedelta
+
     now = datetime.now(tz=timezone.utc)
     from_ts = int((now - timedelta(hours=hours)).timestamp())
     to_ts = int(now.timestamp())
 
     try:
-        raw_txns: list[Transaction] = await fetcher.get_transactions(
-            wallet["address"], hours
-        )
+        raw_txns: list[Transaction] = await fetcher.get_transactions(wallet["address"], hours)
     except Exception:
         raw_txns = []
 

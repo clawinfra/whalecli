@@ -251,10 +251,7 @@ class Database:
 
         # Filter by tags in Python (SQLite JSON support is limited)
         if tags:
-            wallets = [
-                w for w in wallets
-                if any(t in w["tags"] for t in tags)
-            ]
+            wallets = [w for w in wallets if any(t in w["tags"] for t in tags)]
 
         return wallets
 
@@ -286,9 +283,7 @@ class Database:
         w["active"] = bool(w["active"])
         return w
 
-    async def remove_wallet(
-        self, address: str, chain: str, purge: bool = False
-    ) -> dict[str, Any]:
+    async def remove_wallet(self, address: str, chain: str, purge: bool = False) -> dict[str, Any]:
         """
         Mark wallet inactive (soft delete) or purge it entirely.
 
@@ -690,9 +685,7 @@ class Database:
     async def get_next_rule_id(self) -> str:
         """Generate the next sequential rule ID."""
         assert self._conn is not None
-        async with self._conn.execute(
-            "SELECT COUNT(*) as cnt FROM alert_rules"
-        ) as cursor:
+        async with self._conn.execute("SELECT COUNT(*) as cnt FROM alert_rules") as cursor:
             row = await cursor.fetchone()
             n = (row["cnt"] if row else 0) + 1
         return f"rule_{n:03d}"
@@ -721,9 +714,7 @@ class Database:
 
         return row["response"]
 
-    async def cache_set(
-        self, cache_key: str, response: str, ttl_seconds: int
-    ) -> None:
+    async def cache_set(self, cache_key: str, response: str, ttl_seconds: int) -> None:
         """Store API response in cache."""
         assert self._conn is not None
         await self._conn.execute(

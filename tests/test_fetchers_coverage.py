@@ -38,6 +38,7 @@ def _eth_empty_resp() -> dict:
 async def test_eth_fetches_both_normal_and_token_txns() -> None:
     """EtherscanClient fetches native + ERC-20 token transactions."""
     from datetime import datetime, timezone
+
     now_ts = str(int(datetime.now(tz=timezone.utc).timestamp()) - 3600)  # 1 hour ago
 
     native_tx = {
@@ -67,10 +68,12 @@ async def test_eth_fetches_both_normal_and_token_txns() -> None:
     }
 
     # Mock all etherscan calls: txlist returns native tx, tokentx returns token tx
-    respx.get(ETHERSCAN_BASE).mock(side_effect=[
-        httpx.Response(200, json=_eth_tx_list_resp([native_tx])),
-        httpx.Response(200, json=_eth_tx_list_resp([token_tx])),
-    ])
+    respx.get(ETHERSCAN_BASE).mock(
+        side_effect=[
+            httpx.Response(200, json=_eth_tx_list_resp([native_tx])),
+            httpx.Response(200, json=_eth_tx_list_resp([token_tx])),
+        ]
+    )
 
     client = EtherscanClient(api_key=ETHERSCAN_KEY)
     txns = await client.get_transactions(ETH_ADDR, hours=24)
@@ -85,6 +88,7 @@ async def test_eth_fetches_both_normal_and_token_txns() -> None:
 async def test_eth_deduplicates_transactions() -> None:
     """EtherscanClient returns at most 2 results when native and token have different hashes."""
     from datetime import datetime, timezone
+
     now_ts = str(int(datetime.now(tz=timezone.utc).timestamp()) - 1800)
 
     tx_native = {
@@ -114,10 +118,12 @@ async def test_eth_deduplicates_transactions() -> None:
         "isError": "0",
     }
 
-    respx.get(ETHERSCAN_BASE).mock(side_effect=[
-        httpx.Response(200, json=_eth_tx_list_resp([tx_native])),
-        httpx.Response(200, json=_eth_tx_list_resp([tx_token])),
-    ])
+    respx.get(ETHERSCAN_BASE).mock(
+        side_effect=[
+            httpx.Response(200, json=_eth_tx_list_resp([tx_native])),
+            httpx.Response(200, json=_eth_tx_list_resp([tx_token])),
+        ]
+    )
 
     client = EtherscanClient(api_key=ETHERSCAN_KEY)
     txns = await client.get_transactions(ETH_ADDR, hours=24)
@@ -132,6 +138,7 @@ async def test_eth_deduplicates_transactions() -> None:
 async def test_eth_skips_error_transactions() -> None:
     """EtherscanClient filters out failed transactions (isError='1')."""
     from datetime import datetime, timezone
+
     now_ts = str(int(datetime.now(tz=timezone.utc).timestamp()) - 1800)
     failed_tx = {
         "hash": "0xfailed",
@@ -145,10 +152,12 @@ async def test_eth_skips_error_transactions() -> None:
         "isError": "1",  # Failed transaction
     }
 
-    respx.get(ETHERSCAN_BASE).mock(side_effect=[
-        httpx.Response(200, json=_eth_tx_list_resp([failed_tx])),
-        httpx.Response(200, json=_eth_empty_resp()),
-    ])
+    respx.get(ETHERSCAN_BASE).mock(
+        side_effect=[
+            httpx.Response(200, json=_eth_tx_list_resp([failed_tx])),
+            httpx.Response(200, json=_eth_empty_resp()),
+        ]
+    )
 
     client = EtherscanClient(api_key=ETHERSCAN_KEY)
     txns = await client.get_transactions(ETH_ADDR, hours=24)
@@ -174,10 +183,12 @@ async def test_eth_filters_by_time_window() -> None:
         "isError": "0",
     }
 
-    respx.get(ETHERSCAN_BASE).mock(side_effect=[
-        httpx.Response(200, json=_eth_tx_list_resp([old_tx])),
-        httpx.Response(200, json=_eth_empty_resp()),
-    ])
+    respx.get(ETHERSCAN_BASE).mock(
+        side_effect=[
+            httpx.Response(200, json=_eth_tx_list_resp([old_tx])),
+            httpx.Response(200, json=_eth_empty_resp()),
+        ]
+    )
 
     client = EtherscanClient(api_key=ETHERSCAN_KEY)
     txns = await client.get_transactions(ETH_ADDR, hours=24)  # 24h window
@@ -192,6 +203,7 @@ async def test_eth_filters_by_time_window() -> None:
 async def test_eth_connection_error_raises_network_error() -> None:
     """Network connection errors are wrapped as NetworkError."""
     from whalecli.exceptions import NetworkError
+
     respx.get(ETHERSCAN_BASE).mock(side_effect=httpx.ConnectError("refused"))
 
     client = EtherscanClient(api_key=ETHERSCAN_KEY)
@@ -217,9 +229,7 @@ async def test_eth_get_wallet_age_new_wallet() -> None:
         "isError": "0",
     }
 
-    respx.get(ETHERSCAN_BASE).mock(return_value=httpx.Response(
-        200, json=_eth_tx_list_resp([tx])
-    ))
+    respx.get(ETHERSCAN_BASE).mock(return_value=httpx.Response(200, json=_eth_tx_list_resp([tx])))
 
     client = EtherscanClient(api_key=ETHERSCAN_KEY)
     age = await client.get_wallet_age(ETH_ADDR)
@@ -243,8 +253,12 @@ async def test_eth_validate_address_checksum() -> None:
 # ══════════════════════════════════════════════════════════════════════════════
 
 
-def _mempool_tx(txid: str = "btc001", block_time: int = 1706906640,
-                received_sats: int = 5_000_000, sent_sats: int = 0) -> dict:
+def _mempool_tx(
+    txid: str = "btc001",
+    block_time: int = 1706906640,
+    received_sats: int = 5_000_000,
+    sent_sats: int = 0,
+) -> dict:
     return {
         "txid": txid,
         "fee": 1000,
@@ -365,22 +379,26 @@ async def test_btc_deduplicates_mempool_and_blockchain_info() -> None:
     shared_hash = "btcshared001"
     block_time = int((datetime.now(tz=timezone.utc) - timedelta(hours=12)).timestamp())
 
-    mempool_resp = [{
-        "txid": shared_hash,
-        "fee": 1000,
-        "status": {"confirmed": True, "block_height": 820000, "block_time": block_time},
-        "vin": [],
-        "vout": [{"scriptpubkey_address": BTC_ADDR, "value": 2_000_000}],
-    }]
+    mempool_resp = [
+        {
+            "txid": shared_hash,
+            "fee": 1000,
+            "status": {"confirmed": True, "block_height": 820000, "block_time": block_time},
+            "vin": [],
+            "vout": [{"scriptpubkey_address": BTC_ADDR, "value": 2_000_000}],
+        }
+    ]
     blockchain_resp = {
         "n_tx": 1,
-        "txs": [{
-            "hash": shared_hash,
-            "time": block_time,
-            "block_height": 820000,
-            "inputs": [],
-            "out": [{"addr": BTC_ADDR, "value": 2_000_000}],
-        }],
+        "txs": [
+            {
+                "hash": shared_hash,
+                "time": block_time,
+                "block_height": 820000,
+                "inputs": [],
+                "out": [{"addr": BTC_ADDR, "value": 2_000_000}],
+            }
+        ],
     }
 
     respx.get(f"{MEMPOOL_BASE}/address/{BTC_ADDR}/txs").mock(
@@ -430,7 +448,12 @@ async def test_btc_get_mempool_txns() -> None:
 async def test_btc_get_wallet_age(monkeypatch) -> None:
     """get_wallet_age returns age in days based on oldest tx."""
     old_ts = int(datetime(2020, 1, 1, tzinfo=timezone.utc).timestamp())
-    data = [{"txid": "first", "status": {"confirmed": True, "block_height": 600000, "block_time": old_ts}}]
+    data = [
+        {
+            "txid": "first",
+            "status": {"confirmed": True, "block_height": 600000, "block_time": old_ts},
+        }
+    ]
 
     respx.get(f"{MEMPOOL_BASE}/address/{BTC_ADDR}/txs").mock(
         return_value=httpx.Response(200, json=data)
@@ -515,8 +538,16 @@ async def test_btc_blockchain_info_pagination() -> None:
 async def test_hl_buy_fill_creates_inflow_transaction() -> None:
     """Buy-side fills (side='B') → from=market, to=wallet."""
     now_ms = int(datetime.now(tz=timezone.utc).timestamp()) * 1000
-    fill = {"oid": 1, "tid": 100, "px": "3000.0", "sz": "5.0", "side": "B",
-            "coin": "ETH", "time": now_ms, "fee": "0.5"}
+    fill = {
+        "oid": 1,
+        "tid": 100,
+        "px": "3000.0",
+        "sz": "5.0",
+        "side": "B",
+        "coin": "ETH",
+        "time": now_ms,
+        "fee": "0.5",
+    }
 
     respx.post(HL_API_URL).mock(return_value=httpx.Response(200, json=[fill]))
 
@@ -534,8 +565,16 @@ async def test_hl_buy_fill_creates_inflow_transaction() -> None:
 async def test_hl_sell_fill_creates_outflow_transaction() -> None:
     """Sell-side fills (side='A') → from=wallet, to=market."""
     now_ms = int(datetime.now(tz=timezone.utc).timestamp()) * 1000
-    fill = {"oid": 2, "tid": 200, "px": "3000.0", "sz": "3.0", "side": "A",
-            "coin": "ETH", "time": now_ms, "fee": "0.5"}
+    fill = {
+        "oid": 2,
+        "tid": 200,
+        "px": "3000.0",
+        "sz": "3.0",
+        "side": "A",
+        "coin": "ETH",
+        "time": now_ms,
+        "fee": "0.5",
+    }
 
     respx.post(HL_API_URL).mock(return_value=httpx.Response(200, json=[fill]))
 
@@ -553,8 +592,16 @@ async def test_hl_sell_fill_creates_outflow_transaction() -> None:
 async def test_hl_filters_old_fills() -> None:
     """Fills older than the window are excluded."""
     old_ms = int(datetime(2020, 1, 1, tzinfo=timezone.utc).timestamp()) * 1000
-    fill = {"oid": 3, "tid": 300, "px": "100.0", "sz": "1.0", "side": "B",
-            "coin": "BTC", "time": old_ms, "fee": "0.1"}
+    fill = {
+        "oid": 3,
+        "tid": 300,
+        "px": "100.0",
+        "sz": "1.0",
+        "side": "B",
+        "coin": "BTC",
+        "time": old_ms,
+        "fee": "0.1",
+    }
 
     respx.post(HL_API_URL).mock(return_value=httpx.Response(200, json=[fill]))
 
@@ -570,6 +617,7 @@ async def test_hl_filters_old_fills() -> None:
 async def test_hl_get_large_positions() -> None:
     """get_large_positions returns HLPosition objects from clearinghouseState."""
     from whalecli.models import HLPosition
+
     # clearinghouseState returns a dict with assetPositions
     positions_resp = {
         "assetPositions": [
@@ -603,6 +651,7 @@ async def test_hl_get_large_positions() -> None:
 async def test_hl_api_error_raises() -> None:
     """Non-200 HL API responses raise APIError."""
     from whalecli.exceptions import APIError
+
     respx.post(HL_API_URL).mock(return_value=httpx.Response(500, text="Server error"))
 
     client = HyperliquidClient()
@@ -616,6 +665,7 @@ async def test_hl_api_error_raises() -> None:
 async def test_hl_timeout_raises_network_timeout_error() -> None:
     """Timeout from HL API raises NetworkTimeoutError."""
     from whalecli.exceptions import NetworkTimeoutError
+
     respx.post(HL_API_URL).mock(side_effect=httpx.TimeoutException("timeout"))
 
     client = HyperliquidClient()
@@ -629,8 +679,16 @@ async def test_hl_timeout_raises_network_timeout_error() -> None:
 async def test_hl_get_wallet_age_with_fills() -> None:
     """get_wallet_age returns correct days since first HL fill."""
     old_ms = int(datetime(2022, 1, 1, tzinfo=timezone.utc).timestamp()) * 1000
-    fill = {"oid": 99, "tid": 999, "px": "1000.0", "sz": "1.0", "side": "B",
-            "coin": "BTC", "time": old_ms, "fee": "0.1"}
+    fill = {
+        "oid": 99,
+        "tid": 999,
+        "px": "1000.0",
+        "sz": "1.0",
+        "side": "B",
+        "coin": "BTC",
+        "time": old_ms,
+        "fee": "0.1",
+    }
 
     respx.post(HL_API_URL).mock(return_value=httpx.Response(200, json=[fill]))
 

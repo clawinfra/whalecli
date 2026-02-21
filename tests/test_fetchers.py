@@ -22,7 +22,6 @@ from whalecli.fetchers.btc import BTCFetcher
 from whalecli.fetchers.eth import ETHERSCAN_BASE, EtherscanClient
 from whalecli.fetchers.hl import HL_API_URL, HyperliquidClient
 
-
 # ── EtherscanClient ───────────────────────────────────────────────────────────
 
 ETH_ADDR = "0xd8da6bf26964af9d7eed9e03e53415d37aa96045"
@@ -58,9 +57,7 @@ def make_eth_tx(
 async def test_eth_fetch_transactions_normal() -> None:
     """EtherscanClient returns normalized transactions for a normal response."""
     tx = make_eth_tx()
-    respx.get(ETHERSCAN_BASE).mock(return_value=httpx.Response(
-        200, json=make_etherscan_resp([tx])
-    ))
+    respx.get(ETHERSCAN_BASE).mock(return_value=httpx.Response(200, json=make_etherscan_resp([tx])))
 
     client = EtherscanClient(api_key=ETHERSCAN_API_KEY)
     txns = await client.get_transactions(ETH_ADDR, hours=24)

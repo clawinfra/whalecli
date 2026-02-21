@@ -119,9 +119,7 @@ class BTCFetcher:
         - Bech32 SegWit: starts with bc1
         """
         return bool(
-            _P2PKH_RE.match(address)
-            or _P2SH_RE.match(address)
-            or _BECH32_RE.match(address)
+            _P2PKH_RE.match(address) or _P2SH_RE.match(address) or _BECH32_RE.match(address)
         )
 
     async def close(self) -> None:
@@ -173,9 +171,7 @@ class BTCFetcher:
 
         return results
 
-    async def _fetch_blockchain_info(
-        self, address: str, cutoff: datetime
-    ) -> list[Transaction]:
+    async def _fetch_blockchain_info(self, address: str, cutoff: datetime) -> list[Transaction]:
         """Fetch historical transactions from Blockchain.info (paginated)."""
         results: list[Transaction] = []
         offset = 0
@@ -274,9 +270,7 @@ class BTCFetcher:
             txid = raw["hash"]
 
             received_sats = sum(
-                o.get("value", 0)
-                for o in raw.get("out", [])
-                if o.get("addr") == address
+                o.get("value", 0) for o in raw.get("out", []) if o.get("addr") == address
             )
             sent_sats = sum(
                 i.get("prev_out", {}).get("value", 0)

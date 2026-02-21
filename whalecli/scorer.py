@@ -58,11 +58,14 @@ def load_exchange_addresses(chain: str) -> set[str]:
 
 
 # ── Scale factors (calibrated so $10M flow in 24h ≈ 35 pts) ─────────────────
-_NET_FLOW_SCALE = 3.5  # log10($10M) = 7  → 7 * 3.5 * age_weight = ~24; at age_weight=1.3 → 31.8; target 35 pts
+_NET_FLOW_SCALE = (
+    3.5  # log10($10M) = 7  → 7 * 3.5 * age_weight = ~24; at age_weight=1.3 → 31.8; target 35 pts
+)
 _VELOCITY_SCALE = 8.3  # log2(20x) = 4.32 → 4.32 * 8.3 ≈ 35.8, capped at 25
 
 
 # ── Component 1: Net Flow Score ───────────────────────────────────────────────
+
 
 def compute_net_flow_score(
     transactions: list[Transaction],
@@ -194,25 +197,20 @@ def compute_correlation_score(
         return 0
 
     # Count active peers (non-neutral)
-    active_peers = {
-        addr: d
-        for addr, d in all_wallet_directions.items()
-        if d != "neutral"
-    }
+    active_peers = {addr: d for addr, d in all_wallet_directions.items() if d != "neutral"}
     total_active = len(active_peers)
 
     if total_active < _CORRELATION_MIN_PEERS:
         return 0
 
-    same_direction_count = sum(
-        1 for d in active_peers.values() if d == wallet_direction
-    )
+    same_direction_count = sum(1 for d in active_peers.values() if d == wallet_direction)
 
     correlation_ratio = same_direction_count / total_active
     return max(0, min(20, round(correlation_ratio * 20)))
 
 
 # ── Component 4: Exchange Flow Score ─────────────────────────────────────────
+
 
 def compute_exchange_flow_score(
     transactions: list[Transaction],
@@ -235,7 +233,7 @@ def compute_exchange_flow_score(
     """
     addr_lower = wallet_address.lower()
 
-    exchange_inflow = 0.0   # wallet receives from exchange (accumulating)
+    exchange_inflow = 0.0  # wallet receives from exchange (accumulating)
     exchange_outflow = 0.0  # wallet sends to exchange (distributing)
     total_volume = 0.0
 
@@ -268,6 +266,7 @@ def compute_exchange_flow_score(
 
 
 # ── Composite scorer ──────────────────────────────────────────────────────────
+
 
 def score_wallet(
     address: str,

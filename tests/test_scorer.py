@@ -18,7 +18,6 @@ from whalecli.scorer import (
     score_wallet,
 )
 
-
 ETH_ADDR = "0xabcdef1234567890abcdef1234567890abcdef12"
 TS = datetime(2026, 2, 22, 12, 0, 0, tzinfo=timezone.utc).isoformat()
 
@@ -71,7 +70,10 @@ def test_net_flow_score_pure_inflow() -> None:
 
 def test_net_flow_score_pure_outflow() -> None:
     """Large outflow should direction = distributing."""
-    txns = [make_tx(from_addr=ETH_ADDR, to_addr="0xrecip", value_usd=1_500_000.0, tx_hash=f"0x{i}") for i in range(3)]
+    txns = [
+        make_tx(from_addr=ETH_ADDR, to_addr="0xrecip", value_usd=1_500_000.0, tx_hash=f"0x{i}")
+        for i in range(3)
+    ]
     score, direction, net, inflow, outflow = compute_net_flow_score(txns, ETH_ADDR, 365)
     assert direction == "distributing"
     assert net < 0
@@ -313,9 +315,17 @@ def test_score_wallet_has_required_fields() -> None:
         scan_hours=24,
     )
     required_keys = {
-        "address", "chain", "score", "score_breakdown",
-        "direction", "net_flow_usd", "inflow_usd", "outflow_usd",
-        "tx_count", "wallet_age_days", "exchange_flow_fraction",
+        "address",
+        "chain",
+        "score",
+        "score_breakdown",
+        "direction",
+        "net_flow_usd",
+        "inflow_usd",
+        "outflow_usd",
+        "tx_count",
+        "wallet_age_days",
+        "exchange_flow_fraction",
     }
     assert required_keys.issubset(result.keys())
 

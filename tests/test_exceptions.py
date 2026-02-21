@@ -23,7 +23,6 @@ from whalecli.exceptions import (
     WhalecliError,
 )
 
-
 # ── Hierarchy / exit codes ────────────────────────────────────────────────────
 
 

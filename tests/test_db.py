@@ -372,6 +372,7 @@ async def test_cache_expired(db: Database) -> None:
     await db.cache_set("expired_key", '{"x": 1}', ttl_seconds=0)
     # TTL of 0 means instantly expired
     import asyncio
+
     await asyncio.sleep(0.01)
     value = await db.cache_get("expired_key")
     assert value is None
@@ -383,6 +384,7 @@ async def test_cache_prune(db: Database) -> None:
     await db.cache_set("stale_key", "data", ttl_seconds=0)
     await db.cache_set("fresh_key", "data", ttl_seconds=3600)
     import asyncio
+
     await asyncio.sleep(0.01)
     deleted = await db.cache_prune()
     assert deleted >= 1

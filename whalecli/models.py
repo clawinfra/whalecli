@@ -18,11 +18,11 @@ class Wallet:
     """A tracked whale wallet."""
 
     address: str
-    chain: str          # "ETH" | "BTC" | "HL"
+    chain: str  # "ETH" | "BTC" | "HL"
     label: str
     tags: list[str]
-    added_at: str       # ISO8601 UTC
-    first_seen: str | None = None   # ISO8601 UTC; None until first scan
+    added_at: str  # ISO8601 UTC
+    first_seen: str | None = None  # ISO8601 UTC; None until first scan
     active: bool = True
 
     def short_address(self) -> str:
@@ -44,14 +44,14 @@ class Transaction:
     chain: str
     from_addr: str
     to_addr: str
-    timestamp: str              # ISO8601 UTC
-    value_native: Decimal       # In chain's native unit: ETH, BTC, etc.
+    timestamp: str  # ISO8601 UTC
+    value_native: Decimal  # In chain's native unit: ETH, BTC, etc.
     block_num: int | None = None
-    value_usd: float | None = None      # None if price data unavailable
+    value_usd: float | None = None  # None if price data unavailable
     gas_usd: float | None = None
-    token_symbol: str | None = None     # None for native asset transfers
+    token_symbol: str | None = None  # None for native asset transfers
     token_addr: str | None = None
-    fetched_at: str = ""        # ISO8601 UTC; set by fetcher
+    fetched_at: str = ""  # ISO8601 UTC; set by fetcher
 
 
 @dataclass
@@ -59,22 +59,22 @@ class HLPosition:
     """An open Hyperliquid perpetual futures position."""
 
     address: str
-    asset: str              # "ETH", "BTC", etc.
-    side: str               # "long" | "short"
+    asset: str  # "ETH", "BTC", etc.
+    side: str  # "long" | "short"
     size_usd: float
     entry_price: float
     unrealized_pnl: float
-    timestamp: str          # ISO8601 UTC
+    timestamp: str  # ISO8601 UTC
 
 
 @dataclass
 class ScoreComponent:
     """Detailed breakdown for one component of the whale score."""
 
-    name: str           # "net_flow" | "velocity" | "correlation" | "exchange_flow"
-    value: int          # 0 to max_points
-    max_points: int     # component ceiling
-    rationale: str      # human-readable explanation of this component's score
+    name: str  # "net_flow" | "velocity" | "correlation" | "exchange_flow"
+    value: int  # 0 to max_points
+    max_points: int  # component ceiling
+    rationale: str  # human-readable explanation of this component's score
 
 
 @dataclass
@@ -87,20 +87,20 @@ class ScoreBreakdown:
 
     address: str
     chain: str
-    computed_at: str        # ISO8601 UTC
+    computed_at: str  # ISO8601 UTC
     window_hours: int
 
     # Composite score
-    total: int              # 0–100; sum of all components, clamped
+    total: int  # 0–100; sum of all components, clamped
 
     # Per-component scores
-    net_flow: int           # 0–40
-    velocity: int           # 0–25
-    correlation: int        # 0–20
-    exchange_flow: int      # 0–15
+    net_flow: int  # 0–40
+    velocity: int  # 0–25
+    correlation: int  # 0–20
+    exchange_flow: int  # 0–15
 
     # Flow data
-    direction: str          # "accumulating" | "distributing" | "neutral"
+    direction: str  # "accumulating" | "distributing" | "neutral"
     net_flow_usd: float
     inflow_usd: float
     outflow_usd: float
@@ -137,13 +137,13 @@ class ScoreBreakdown:
 class AlertEvent:
     """A triggered alert event."""
 
-    id: str                     # "alert_YYYYMMDD_HHMMSS_NNN"
+    id: str  # "alert_YYYYMMDD_HHMMSS_NNN"
     rule_id: str
     address: str
     chain: str
     label: str
     score: int
-    triggered_at: str           # ISO8601 UTC
+    triggered_at: str  # ISO8601 UTC
     score_breakdown: ScoreBreakdown | None = None
     webhook_sent: bool = False
     webhook_status: int | None = None
@@ -170,13 +170,13 @@ class AlertEvent:
 class AlertRule:
     """A configured alert rule."""
 
-    id: str                     # "rule_NNN"
-    type: str                   # "score" | "flow"
-    value: float                # score threshold or USD flow threshold
-    window: str                 # "15m" | "30m" | "1h" | "4h" | "24h"
-    chain: str | None           # None = all chains
+    id: str  # "rule_NNN"
+    type: str  # "score" | "flow"
+    value: float  # score threshold or USD flow threshold
+    window: str  # "15m" | "30m" | "1h" | "4h" | "24h"
+    chain: str | None  # None = all chains
     webhook_url: str | None
-    created_at: str             # ISO8601 UTC
+    created_at: str  # ISO8601 UTC
     active: bool = True
 
     def to_dict(self) -> dict:

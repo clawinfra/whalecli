@@ -18,7 +18,6 @@ from whalecli.config import (
 )
 from whalecli.exceptions import ConfigInvalidError, ConfigMissingError
 
-
 # ── load_config ───────────────────────────────────────────────────────────────
 
 

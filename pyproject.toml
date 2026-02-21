@@ -47,6 +47,7 @@ dev = [
     "ruff>=0.4",
     "black>=24",
     "mypy>=1.9",
+    "isort>=5.13",
 ]
 
 [project.scripts]

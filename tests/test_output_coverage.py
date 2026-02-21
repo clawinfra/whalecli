@@ -43,7 +43,14 @@ def test_format_table_with_rules() -> None:
     """format_table renders alert rules table."""
     data = {
         "rules": [
-            {"id": "rule_001", "type": "score", "value": 70.0, "window": "1h", "chain": "ETH", "active": True},
+            {
+                "id": "rule_001",
+                "type": "score",
+                "value": 70.0,
+                "window": "1h",
+                "chain": "ETH",
+                "active": True,
+            },
         ],
     }
     result = format_table(data)
@@ -54,8 +61,16 @@ def test_format_table_with_rules() -> None:
 def test_format_table_alert_list_with_no_rules() -> None:
     """format_table renders alerts without rules section."""
     data = {
-        "recent_alerts": [{"id": 1, "address": "0xtest", "chain": "ETH", "score": 80,
-                           "triggered_at": "2026-02-22T12:00:00+00:00", "webhook_sent": False}],
+        "recent_alerts": [
+            {
+                "id": 1,
+                "address": "0xtest",
+                "chain": "ETH",
+                "score": 80,
+                "triggered_at": "2026-02-22T12:00:00+00:00",
+                "webhook_sent": False,
+            }
+        ],
         "rules": [],
     }
     result = format_table(data)
@@ -80,12 +95,19 @@ def test_format_csv_with_scalar_fallback() -> None:
 def test_format_csv_flattens_nested() -> None:
     """format_csv flattens nested score_breakdown."""
     data = {
-        "wallets": [{
-            "address": "0xtest",
-            "chain": "ETH",
-            "score": 75,
-            "score_breakdown": {"net_flow": 30, "velocity": 20, "correlation": 15, "exchange_flow": 10},
-        }]
+        "wallets": [
+            {
+                "address": "0xtest",
+                "chain": "ETH",
+                "score": 75,
+                "score_breakdown": {
+                    "net_flow": 30,
+                    "velocity": 20,
+                    "correlation": 15,
+                    "exchange_flow": 10,
+                },
+            }
+        ]
     }
     result = format_csv(data)
     # Flattened keys like score_breakdown.net_flow should appear
@@ -151,8 +173,10 @@ def test_format_jsonl_empty_scan_result() -> None:
 def test_decimal_encoder_handles_other_types() -> None:
     """DecimalEncoder falls back to standard JSON for non-Decimal types."""
     from whalecli.output import DecimalEncoder
+
     encoder = DecimalEncoder()
     import pytest
+
     with pytest.raises(TypeError):
         encoder.default(object())
 

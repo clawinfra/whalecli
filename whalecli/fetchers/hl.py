@@ -73,20 +73,22 @@ class HyperliquidClient:
             from_addr = "market" if is_buy else address
             to_addr = address if is_buy else "market"
 
-            txns.append(Transaction(
-                tx_hash=f"hl_{fill.get('oid', '')}_{fill.get('tid', '')}",
-                chain="HL",
-                block_num=None,
-                timestamp=ts.isoformat(),
-                from_addr=from_addr,
-                to_addr=to_addr,
-                value_native=sz,
-                value_usd=notional_usd,
-                gas_usd=float(fill.get("fee", 0)),
-                token_symbol=fill.get("coin"),
-                token_addr=None,
-                fetched_at="",
-            ))
+            txns.append(
+                Transaction(
+                    tx_hash=f"hl_{fill.get('oid', '')}_{fill.get('tid', '')}",
+                    chain="HL",
+                    block_num=None,
+                    timestamp=ts.isoformat(),
+                    from_addr=from_addr,
+                    to_addr=to_addr,
+                    value_native=sz,
+                    value_usd=notional_usd,
+                    gas_usd=float(fill.get("fee", 0)),
+                    token_symbol=fill.get("coin"),
+                    token_addr=None,
+                    fetched_at="",
+                )
+            )
 
         return sorted(txns, key=lambda x: x.timestamp, reverse=True)
 
@@ -120,15 +122,17 @@ class HyperliquidClient:
             asset = pos.get("coin", "")
             size_usd = abs(szi) * entry_px
 
-            positions.append(HLPosition(
-                address=address,
-                asset=asset,
-                side="long" if szi > 0 else "short",
-                size_usd=size_usd,
-                entry_price=entry_px,
-                unrealized_pnl=unrealized_pnl,
-                timestamp=datetime.now(tz=timezone.utc).isoformat(),
-            ))
+            positions.append(
+                HLPosition(
+                    address=address,
+                    asset=asset,
+                    side="long" if szi > 0 else "short",
+                    size_usd=size_usd,
+                    entry_price=entry_px,
+                    unrealized_pnl=unrealized_pnl,
+                    timestamp=datetime.now(tz=timezone.utc).isoformat(),
+                )
+            )
 
         return positions
 

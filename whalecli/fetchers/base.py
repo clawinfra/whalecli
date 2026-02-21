@@ -16,15 +16,15 @@ class RawTransaction:
     """
 
     tx_hash: str
-    timestamp: int          # Unix timestamp (UTC seconds)
-    from_addr: str          # Sending address (lowercase)
-    to_addr: str            # Receiving address (lowercase)
-    value_native: float     # Amount in chain native unit (ETH, BTC, etc.)
-    value_usd: float        # USD value at time of transaction
-    tx_type: str            # "transfer" | "erc20_transfer" | "internal" | "perp_open" | "perp_close"
-    chain: str              # "ETH" | "BTC" | "HL"
-    block_number: int       # Block height (0 for unconfirmed)
-    fee_usd: float          # Transaction fee in USD
+    timestamp: int  # Unix timestamp (UTC seconds)
+    from_addr: str  # Sending address (lowercase)
+    to_addr: str  # Receiving address (lowercase)
+    value_native: float  # Amount in chain native unit (ETH, BTC, etc.)
+    value_usd: float  # USD value at time of transaction
+    tx_type: str  # "transfer" | "erc20_transfer" | "internal" | "perp_open" | "perp_close"
+    chain: str  # "ETH" | "BTC" | "HL"
+    block_number: int  # Block height (0 for unconfirmed)
+    fee_usd: float  # Transaction fee in USD
 
 
 @runtime_checkable

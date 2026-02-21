@@ -91,7 +91,7 @@ data = run_whalecli("scan", "--chain", "ETH", "--hours", "4", "--format", "json"
 
 ```python
 data = run_whalecli(
-    "alert", "--score", "80", "--window", "1h", "--format", "json"
+    "alert", "set", "--score", "80", "--window", "1h", "--format", "json"
 )
 if result.returncode == 0:
     # Alert triggered
@@ -156,16 +156,15 @@ elif result.returncode == 2:
 data = json.loads(result.stdout)
 
 # Core signal fields
-signal = data["summary"]["dominant_signal"]        # "accumulation" | "distribution" | "mixed" | "neutral"
-implication = data["summary"]["fear_greed_implication"]  # "bullish" | "bearish" | "neutral"
+signal = data["summary"]["dominant_signal"]        # "accumulating" | "distributing" | "mixed" | "neutral"
 net_flow = data["summary"]["total_net_flow_usd"]   # Positive = net accumulation
 
 # Individual alerts
 for alert in data["alerts"]:
-    print(f"{alert['label']}: score={alert['score']}, signal={alert['signal']}")
+    print(f"{alert['label']}: score={alert['score']}, direction={alert['direction']}")
     
     # High-conviction check
-    if alert["score"] >= 85 and alert["sub_scores"]["exchange_flow"] >= 70:
+    if alert["score"] >= 85 and alert["score_breakdown"]["exchange_flow"] >= 70:
         print("HIGH CONVICTION: Exchange flow confirms signal")
 ```
 
@@ -179,10 +178,10 @@ def whale_signal_to_bet_direction(data: dict) -> str | None:
     """
     signal = data["summary"]["dominant_signal"]
     net_flow = data["summary"]["total_net_flow_usd"]
-    alert_count = data["summary"]["alert_count"]
+    alerts_triggered = data["alerts_triggered"]
     
     # Require at least 2 alerts for signal validity
-    if alert_count < 2:
+    if alerts_triggered < 2:
         return None
     
     # Strong accumulation = bullish = LONG
@@ -288,7 +287,7 @@ class FearHarvesterWorkflow:
         data = json.loads(result.stdout)
         
         # Validate signal quality
-        if data["summary"]["alert_count"] < self.MIN_ALERTS_FOR_BET:
+        if data["alerts_triggered"] < self.MIN_ALERTS_FOR_BET:
             return None
         
         if abs(data["summary"]["total_net_flow_usd"]) < self.MIN_NET_FLOW_USD:
@@ -305,7 +304,6 @@ class FearHarvesterWorkflow:
           confidence: 0.0–1.0
         """
         whale_signal = signal["summary"]["dominant_signal"]
-        whale_implication = signal["summary"]["fear_greed_implication"]
         fg_value = fear_greed.get("value", 50)  # 0=extreme fear, 100=extreme greed
         
         # Contrarian + whale agreement logic:
@@ -315,22 +313,22 @@ class FearHarvesterWorkflow:
         confidence = 0.5  # Base
         direction = None
         
-        if whale_signal == "accumulation" and whale_implication == "bullish":
+        if whale_signal == "accumulating":
             direction = "LONG"
             confidence += 0.20
             
             if fg_value < 25:  # Extreme fear — contrarian confirms
                 confidence += 0.20
         
-        elif whale_signal == "distribution" and whale_implication == "bearish":
+        elif whale_signal == "distributing":
             direction = "SHORT"
             confidence += 0.20
             
             if fg_value > 75:  # Extreme greed — contrarian confirms
                 confidence += 0.20
         
-        # Boost confidence for high-correlation whale moves
-        if signal["summary"]["correlated_wallets"] >= 5:
+        # Boost confidence if majority of wallets agree
+        if signal["summary"]["accumulating"] >= 5 or signal["summary"]["distributing"] >= 5:
             confidence += 0.10
         
         # Cap at 0.95 (never 100% confident)
@@ -381,10 +379,10 @@ async def fearharvester_stream_loop():
         
         # Immediate high-confidence bet trigger
         if (event["score"] >= 90 and 
-            event["sub_scores"]["exchange_flow"] >= 75 and
+            event["score_breakdown"]["exchange_flow"] >= 75 and
             abs(event.get("net_flow_usd", 0)) >= 10_000_000):
             
-            direction = "SHORT" if event["signal"] == "distribution" else "LONG"
+            direction = "SHORT" if event["direction"] == "distributing" else "LONG"
             await place_simmer_bet(direction, confidence=0.85, trigger=event)
 ```
 
@@ -399,7 +397,7 @@ User: "What are the whales doing?"
 
 Agent:
 1. whalecli report --summary --days 1 --format json
-   → Extract: dominant_signal, total_net_flow_usd, alert_count
+   → Extract: dominant_signal, total_net_flow_usd, alerts_triggered
 
 2. whalecli alert list --limit 5 --format json
    → Extract: recent alerts for context
@@ -432,7 +430,7 @@ Agent (automatic):
 ```
 EvoClaw cron job (every 30 min, 09:00–23:00):
 
-1. whalecli alert --score 75 --window 30m --format json
+1. whalecli alert set --score 75 --window 30m --format json
    
    exit code 1: HEARTBEAT_OK, no action needed
    
@@ -489,7 +487,7 @@ command = "whalecli scan --chain ETH --hours 4 --format json"
 
 [[skills.examples]]
 prompt = "Any whale alerts in the last hour?"
-command = "whalecli alert --score 75 --window 1h --format json"
+command = "whalecli alert set --score 75 --window 1h --format json"
 
 [[skills.examples]]
 prompt = "Show me the whale summary for the last week"
@@ -502,7 +500,7 @@ command = "whalecli report --summary --days 7 --format json"
 
 | Goal | Command | Key fields |
 |------|---------|-----------|
-| Get market direction | `scan --hours 4` | `summary.dominant_signal`, `summary.fear_greed_implication` |
+| Get market direction | `scan --hours 4` | `summary.dominant_signal`, `alerts_triggered` |
 | Get flow magnitude | `scan --hours 24` | `summary.total_net_flow_usd` |
 | Find top whale | `scan --all` | `alerts[0]` (sorted by score desc) |
 | Check exchange pressure | `scan --chain ETH` | `alerts[].exchange_flow_fraction` |

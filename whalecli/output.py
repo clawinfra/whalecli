@@ -67,12 +67,14 @@ def format_output(data: Any, fmt: str) -> str:
 
 # ── JSON ─────────────────────────────────────────────────────────────────────
 
+
 def format_json(data: Any) -> str:
     """Pretty-print data as JSON (2-space indent)."""
     return json.dumps(data, indent=2, cls=DecimalEncoder, ensure_ascii=False)
 
 
 # ── JSONL ────────────────────────────────────────────────────────────────────
+
 
 def format_jsonl(data: Any) -> str:
     """
@@ -92,34 +94,49 @@ def format_jsonl(data: Any) -> str:
         chain = data.get("chain", "all")
         window_hours = data.get("window_hours", 24)
 
-        lines.append(json.dumps({
-            "type": "scan_start",
-            "scan_id": scan_id,
-            "timestamp": scan_time,
-            "chain": chain,
-            "window_hours": window_hours,
-        }, cls=DecimalEncoder))
+        lines.append(
+            json.dumps(
+                {
+                    "type": "scan_start",
+                    "scan_id": scan_id,
+                    "timestamp": scan_time,
+                    "chain": chain,
+                    "window_hours": window_hours,
+                },
+                cls=DecimalEncoder,
+            )
+        )
 
         for wallet in data.get("wallets", []):
-            lines.append(json.dumps({
-                "type": "wallet_result",
-                "address": wallet.get("address", ""),
-                "chain": wallet.get("chain", ""),
-                "label": wallet.get("label", ""),
-                "score": wallet.get("score", 0),
-                "direction": wallet.get("direction", "neutral"),
-                "net_flow_usd": wallet.get("net_flow_usd", 0.0),
-                "alert_triggered": wallet.get("alert_triggered", False),
-                "timestamp": wallet.get("computed_at", scan_time),
-            }, cls=DecimalEncoder))
+            lines.append(
+                json.dumps(
+                    {
+                        "type": "wallet_result",
+                        "address": wallet.get("address", ""),
+                        "chain": wallet.get("chain", ""),
+                        "label": wallet.get("label", ""),
+                        "score": wallet.get("score", 0),
+                        "direction": wallet.get("direction", "neutral"),
+                        "net_flow_usd": wallet.get("net_flow_usd", 0.0),
+                        "alert_triggered": wallet.get("alert_triggered", False),
+                        "timestamp": wallet.get("computed_at", scan_time),
+                    },
+                    cls=DecimalEncoder,
+                )
+            )
 
-        lines.append(json.dumps({
-            "type": "scan_end",
-            "scan_id": scan_id,
-            "wallets_scanned": data.get("wallets_scanned", 0),
-            "alerts_triggered": data.get("alerts_triggered", 0),
-            "timestamp": scan_time,
-        }, cls=DecimalEncoder))
+        lines.append(
+            json.dumps(
+                {
+                    "type": "scan_end",
+                    "scan_id": scan_id,
+                    "wallets_scanned": data.get("wallets_scanned", 0),
+                    "alerts_triggered": data.get("alerts_triggered", 0),
+                    "timestamp": scan_time,
+                },
+                cls=DecimalEncoder,
+            )
+        )
 
     elif isinstance(data, list):
         for item in data:
@@ -132,6 +149,7 @@ def format_jsonl(data: Any) -> str:
 
 
 # ── Table ────────────────────────────────────────────────────────────────────
+
 
 def format_table(data: Any) -> str:
     """
@@ -147,7 +165,12 @@ def format_table(data: Any) -> str:
     buf = io.StringIO()
     console = Console(file=buf, highlight=False, markup=True, width=120)
 
-    if isinstance(data, dict) and "wallets" in data and data["wallets"] and "score" in data["wallets"][0]:
+    if (
+        isinstance(data, dict)
+        and "wallets" in data
+        and data["wallets"]
+        and "score" in data["wallets"][0]
+    ):
         _render_scan_table(console, data)
     elif isinstance(data, dict) and "wallets" in data:
         _render_wallet_list_table(console, data)
@@ -265,8 +288,11 @@ def _render_alerts_table(console: Console, data: dict[str, Any]) -> None:
         rules_table.add_column("Chain")
         for r in data["rules"]:
             rules_table.add_row(
-                r.get("id", ""), r.get("type", ""), str(r.get("value", "")),
-                r.get("window", ""), r.get("chain") or "all",
+                r.get("id", ""),
+                r.get("type", ""),
+                str(r.get("value", "")),
+                r.get("window", ""),
+                r.get("chain") or "all",
             )
         console.print(rules_table)
 
@@ -304,14 +330,18 @@ def _render_rules_table(console: Console, data: dict[str, Any]) -> None:
     table.add_column("Active")
     for r in data.get("rules", []):
         table.add_row(
-            r.get("id", ""), r.get("type", ""), str(r.get("value", "")),
-            r.get("window", ""), r.get("chain") or "all",
+            r.get("id", ""),
+            r.get("type", ""),
+            str(r.get("value", "")),
+            r.get("window", ""),
+            r.get("chain") or "all",
             "✅" if r.get("active") else "❌",
         )
     console.print(table)
 
 
 # ── CSV ──────────────────────────────────────────────────────────────────────
+
 
 def format_csv(data: Any) -> str:
     """
@@ -371,6 +401,7 @@ def _flatten_dict(d: dict[str, Any], prefix: str = "") -> dict[str, Any]:
 
 
 # ── Utility ──────────────────────────────────────────────────────────────────
+
 
 def mask_api_key(key: str) -> str:
     """

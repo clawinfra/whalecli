@@ -146,9 +146,7 @@ async def test_process_alerts_dispatches_webhook(db) -> None:
     config = make_config_with_webhook(url="https://hooks.example.com/alert")
     wallet = make_wallet(score=85, address="0xwebhook_alert")
 
-    respx.post("https://hooks.example.com/alert").mock(
-        return_value=httpx.Response(200)
-    )
+    respx.post("https://hooks.example.com/alert").mock(return_value=httpx.Response(200))
 
     alerts = await process_alerts([wallet], db, config)
     assert len(alerts) == 1
@@ -163,9 +161,7 @@ async def test_process_alerts_webhook_failure(db) -> None:
     config = make_config_with_webhook(url="https://hooks.example.com/fail")
     wallet = make_wallet(score=85, address="0xwebhook_fail")
 
-    respx.post("https://hooks.example.com/fail").mock(
-        return_value=httpx.Response(500)
-    )
+    respx.post("https://hooks.example.com/fail").mock(return_value=httpx.Response(500))
 
     alerts = await process_alerts([wallet], db, config)
     assert len(alerts) == 1

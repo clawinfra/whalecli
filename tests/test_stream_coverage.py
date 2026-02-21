@@ -93,14 +93,16 @@ async def test_fetch_and_score_returns_scored_wallet() -> None:
     }
 
     mock_fetcher = MagicMock()
-    mock_fetcher.get_transactions = AsyncMock(return_value=[
-        _make_transaction(to_addr="0xtest_wallet")
-    ])
+    mock_fetcher.get_transactions = AsyncMock(
+        return_value=[_make_transaction(to_addr="0xtest_wallet")]
+    )
 
     db = _make_mock_db()
 
     with patch("whalecli.scorer.load_exchange_addresses", return_value=set()):
-        result = await _fetch_and_score(wallet, hours=24, fetcher=mock_fetcher, exchange_addrs=set(), db=db)
+        result = await _fetch_and_score(
+            wallet, hours=24, fetcher=mock_fetcher, exchange_addrs=set(), db=db
+        )
 
     assert result is not None
     assert result["address"] == "0xtest_wallet"
@@ -122,7 +124,9 @@ async def test_fetch_and_score_handles_fetch_exception() -> None:
 
     db = _make_mock_db()
 
-    result = await _fetch_and_score(wallet, hours=24, fetcher=mock_fetcher, exchange_addrs=set(), db=db)
+    result = await _fetch_and_score(
+        wallet, hours=24, fetcher=mock_fetcher, exchange_addrs=set(), db=db
+    )
     # Returns scored wallet with empty transactions (score = 0)
     assert result is not None
     assert result["score"] == 0

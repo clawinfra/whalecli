@@ -19,7 +19,6 @@ from whalecli.models import Transaction
 from decimal import Decimal
 from datetime import datetime, timezone
 
-
 # ── Config fixtures ───────────────────────────────────────────────────────────
 
 
@@ -74,6 +73,7 @@ async def in_memory_db() -> Database:
 @pytest.fixture
 def in_memory_db_sync() -> Database:
     """Synchronous wrapper around in-memory DB (for non-async tests)."""
+
     async def _create():
         db = Database(":memory:")
         await db.connect()
@@ -101,37 +101,43 @@ def sample_eth_transactions() -> list[Transaction]:
 
     # 5 inflows (large accumulation signal)
     for i in range(5):
-        txns.append(Transaction(
-            tx_hash=f"0xin{i:04d}abcdef",
-            chain="ETH",
-            from_addr="0xsome_whale_sender",
-            to_addr=ETH_ADDR_1,
-            timestamp=datetime.fromtimestamp(ts_base + i * 3600, tz=timezone.utc).isoformat(),
-            value_native=Decimal("10.0"),  # 10 ETH each
-            block_num=18_000_000 + i,
-            value_usd=30_000.0,  # $30k each
-            gas_usd=5.0,
-            token_symbol=None,
-            token_addr=None,
-            fetched_at="",
-        ))
+        txns.append(
+            Transaction(
+                tx_hash=f"0xin{i:04d}abcdef",
+                chain="ETH",
+                from_addr="0xsome_whale_sender",
+                to_addr=ETH_ADDR_1,
+                timestamp=datetime.fromtimestamp(ts_base + i * 3600, tz=timezone.utc).isoformat(),
+                value_native=Decimal("10.0"),  # 10 ETH each
+                block_num=18_000_000 + i,
+                value_usd=30_000.0,  # $30k each
+                gas_usd=5.0,
+                token_symbol=None,
+                token_addr=None,
+                fetched_at="",
+            )
+        )
 
     # 5 outflows (smaller)
     for i in range(5):
-        txns.append(Transaction(
-            tx_hash=f"0xout{i:04d}abcdef",
-            chain="ETH",
-            from_addr=ETH_ADDR_1,
-            to_addr="0xsome_recipient",
-            timestamp=datetime.fromtimestamp(ts_base + (i + 5) * 3600, tz=timezone.utc).isoformat(),
-            value_native=Decimal("2.0"),
-            block_num=18_000_100 + i,
-            value_usd=6_000.0,
-            gas_usd=5.0,
-            token_symbol=None,
-            token_addr=None,
-            fetched_at="",
-        ))
+        txns.append(
+            Transaction(
+                tx_hash=f"0xout{i:04d}abcdef",
+                chain="ETH",
+                from_addr=ETH_ADDR_1,
+                to_addr="0xsome_recipient",
+                timestamp=datetime.fromtimestamp(
+                    ts_base + (i + 5) * 3600, tz=timezone.utc
+                ).isoformat(),
+                value_native=Decimal("2.0"),
+                block_num=18_000_100 + i,
+                value_usd=6_000.0,
+                gas_usd=5.0,
+                token_symbol=None,
+                token_addr=None,
+                fetched_at="",
+            )
+        )
 
     return txns
 
@@ -142,20 +148,22 @@ def sample_btc_transactions() -> list[Transaction]:
     ts_base = int(datetime(2026, 2, 22, 0, 0, 0, tzinfo=timezone.utc).timestamp())
     txns = []
     for i in range(5):
-        txns.append(Transaction(
-            tx_hash=f"btc_tx_hash_{i:04d}",
-            chain="BTC",
-            from_addr="multiple",
-            to_addr=BTC_ADDR_VALID,
-            timestamp=datetime.fromtimestamp(ts_base + i * 3600, tz=timezone.utc).isoformat(),
-            value_native=Decimal("0.5"),
-            block_num=800_000 + i,
-            value_usd=25_000.0,
-            gas_usd=2.0,
-            token_symbol=None,
-            token_addr=None,
-            fetched_at="",
-        ))
+        txns.append(
+            Transaction(
+                tx_hash=f"btc_tx_hash_{i:04d}",
+                chain="BTC",
+                from_addr="multiple",
+                to_addr=BTC_ADDR_VALID,
+                timestamp=datetime.fromtimestamp(ts_base + i * 3600, tz=timezone.utc).isoformat(),
+                value_native=Decimal("0.5"),
+                block_num=800_000 + i,
+                value_usd=25_000.0,
+                gas_usd=2.0,
+                token_symbol=None,
+                token_addr=None,
+                fetched_at="",
+            )
+        )
     return txns
 
 

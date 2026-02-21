@@ -55,7 +55,7 @@ class _TokenBucket:
     def __init__(self, calls: int, period: float) -> None:
         self._calls = calls
         self._period = period
-        self._tokens = calls
+        self._tokens: float = float(calls)
         self._last_refill = time.monotonic()
         self._lock = asyncio.Lock()
 
@@ -131,17 +131,20 @@ class EtherscanClient:
         """Days since first transaction on this address."""
         await self._rate_limiter.acquire()
         try:
-            resp = await self._client.get(ETHERSCAN_BASE, params={
-                "module": "account",
-                "action": "txlist",
-                "address": address,
-                "startblock": 0,
-                "endblock": 99999999,
-                "sort": "asc",
-                "page": 1,
-                "offset": 1,
-                "apikey": self._api_key,
-            })
+            resp = await self._client.get(
+                ETHERSCAN_BASE,
+                params={
+                    "module": "account",
+                    "action": "txlist",
+                    "address": address,
+                    "startblock": 0,
+                    "endblock": 99999999,
+                    "sort": "asc",
+                    "page": 1,
+                    "offset": 1,
+                    "apikey": self._api_key,
+                },
+            )
             data = resp.json()
             if data["status"] != "1" or not data["result"]:
                 return 0
@@ -175,17 +178,20 @@ class EtherscanClient:
         while True:
             await self._rate_limiter.acquire()
             try:
-                resp = await self._client.get(ETHERSCAN_BASE, params={
-                    "module": "account",
-                    "action": action,
-                    "address": address,
-                    "startblock": 0,
-                    "endblock": 99999999,
-                    "sort": "desc",
-                    "page": page,
-                    "offset": PAGE_SIZE,
-                    "apikey": self._api_key,
-                })
+                resp = await self._client.get(
+                    ETHERSCAN_BASE,
+                    params={
+                        "module": "account",
+                        "action": action,
+                        "address": address,
+                        "startblock": 0,
+                        "endblock": 99999999,
+                        "sort": "desc",
+                        "page": page,
+                        "offset": PAGE_SIZE,
+                        "apikey": self._api_key,
+                    },
+                )
             except httpx.TimeoutException as e:
                 raise NetworkTimeoutError(f"Etherscan timeout: {e}") from e
             except httpx.ConnectError as e:
@@ -229,9 +235,7 @@ class EtherscanClient:
         # Filter to only txns within our window
         return [r for r in all_results if int(r.get("timeStamp", 0)) >= start_time]
 
-    def _parse_native_tx(
-        self, raw: dict[str, Any], address: str
-    ) -> Transaction | None:
+    def _parse_native_tx(self, raw: dict[str, Any], address: str) -> Transaction | None:
         """Parse a native ETH transaction from Etherscan API response."""
         try:
             # Skip failed transactions
@@ -253,18 +257,16 @@ class EtherscanClient:
                 from_addr=raw["from"].lower(),
                 to_addr=raw["to"].lower(),
                 value_native=value_eth,
-                value_usd=None,    # populated by price enrichment step
-                gas_usd=None,      # populated by price enrichment step
+                value_usd=None,  # populated by price enrichment step
+                gas_usd=None,  # populated by price enrichment step
                 token_symbol=None,
                 token_addr=None,
-                fetched_at="",     # set by caller
+                fetched_at="",  # set by caller
             )
         except (KeyError, ValueError, TypeError):
             return None
 
-    def _parse_token_tx(
-        self, raw: dict[str, Any], address: str
-    ) -> Transaction | None:
+    def _parse_token_tx(self, raw: dict[str, Any], address: str) -> Transaction | None:
         """Parse an ERC-20 token transfer from Etherscan API response."""
         try:
             ts = datetime.fromtimestamp(int(raw["timeStamp"]), tz=timezone.utc)

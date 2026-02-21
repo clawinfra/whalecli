@@ -60,7 +60,7 @@ class APIConfig:
 class AlertConfig:
     """Alert threshold and delivery configuration."""
 
-    score_threshold: int = 70           # 0–100; scores >= this trigger alerts
+    score_threshold: int = 70  # 0–100; scores >= this trigger alerts
     flow_threshold_usd: float = 1_000_000.0
     window_minutes: int = 60
     webhook_url: str = ""
@@ -79,7 +79,7 @@ class DatabaseConfig:
 class OutputConfig:
     """Output formatting defaults."""
 
-    default_format: str = "json"        # json | jsonl | table | csv
+    default_format: str = "json"  # json | jsonl | table | csv
     timezone: str = "UTC"
     color: bool = True
 
@@ -251,9 +251,7 @@ def _apply_env_overrides(config: WhalecliConfig) -> None:
         try:
             setattr(section_obj, key, converter(val))
         except (ValueError, TypeError) as e:
-            raise ConfigInvalidError(
-                f"Invalid value for {env_var}={val!r}: {e}"
-            ) from e
+            raise ConfigInvalidError(f"Invalid value for {env_var}={val!r}: {e}") from e
 
 
 def _validate_config(config: WhalecliConfig) -> None:

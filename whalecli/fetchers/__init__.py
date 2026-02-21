@@ -86,20 +86,21 @@ def get_fetcher(chain: str, config: "WhalecliConfig") -> BaseFetcher:
     """
     chain = chain.upper()
     if chain not in SUPPORTED_CHAINS:
-        raise ValueError(
-            f"Unsupported chain: {chain!r}. Supported: {sorted(SUPPORTED_CHAINS)}"
-        )
+        raise ValueError(f"Unsupported chain: {chain!r}. Supported: {sorted(SUPPORTED_CHAINS)}")
 
     if chain == "ETH":
         from whalecli.fetchers.eth import EtherscanClient
+
         return EtherscanClient(api_key=config.api.etherscan_api_key)
 
     if chain == "BTC":
         from whalecli.fetchers.btc import BTCFetcher
+
         return BTCFetcher()
 
     if chain == "HL":
         from whalecli.fetchers.hl import HyperliquidClient
+
         return HyperliquidClient()
 
     raise ValueError(f"Unreachable: {chain}")  # pragma: no cover

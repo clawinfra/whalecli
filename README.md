@@ -31,7 +31,7 @@ pip install -e .
 whalecli config init
 
 # 2. Add API keys
-whalecli config set etherscan_api_key YOUR_KEY
+whalecli config set api.etherscan_api_key YOUR_KEY
 
 # 3. Add whale wallets to track
 whalecli wallet add 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 --chain ETH --label "Binance Cold"
@@ -40,7 +40,7 @@ whalecli wallet add 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 --chain ETH --lab
 whalecli scan --chain ETH --hours 24 --format json
 
 # 5. Set up real-time alerts
-whalecli alert --score 75
+whalecli alert set --score 75
 ```
 
 ## CLI Reference
@@ -81,10 +81,10 @@ whalecli scan --chain BTC --hours 12 --window 1h --format json
 
 ```bash
 # Alert on flow threshold (USD)
-whalecli alert --threshold 1000000 --window 1h
+whalecli alert set --threshold 1000000 --window 1h
 
 # Alert on whale score
-whalecli alert --score 75
+whalecli alert set --score 75
 
 # List active alerts
 whalecli alert list
@@ -113,7 +113,7 @@ whalecli report --wallet <addr> --days 30 --format csv > flows.csv
 whalecli config init
 
 # Set config values
-whalecli config set etherscan_api_key YOUR_KEY
+whalecli config set api.etherscan_api_key YOUR_KEY
 whalecli config set alert_webhook https://hooks.example.com/whale
 
 # Show current config

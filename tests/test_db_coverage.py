@@ -36,17 +36,19 @@ async def test_get_cached_transactions_with_fresh_cache(db: Database) -> None:
     to_ts = now.isoformat()
 
     # Insert a fresh transaction
-    txns = [{
-        "chain": chain,
-        "tx_hash": "0xtest_cached",
-        "block_num": 100,
-        "timestamp": now.isoformat(),
-        "from_addr": "0xsender",
-        "to_addr": address.lower(),
-        "value_native": "1.0",
-        "value_usd": 3000.0,
-        "gas_usd": 5.0,
-    }]
+    txns = [
+        {
+            "chain": chain,
+            "tx_hash": "0xtest_cached",
+            "block_num": 100,
+            "timestamp": now.isoformat(),
+            "from_addr": "0xsender",
+            "to_addr": address.lower(),
+            "value_native": "1.0",
+            "value_usd": 3000.0,
+            "gas_usd": 5.0,
+        }
+    ]
     await db.upsert_transactions(txns)
 
     result = await db.get_cached_transactions(address, chain, from_ts, to_ts, ttl_hours=24)
@@ -61,15 +63,19 @@ async def test_remove_wallet_with_purge(db: Database) -> None:
     await db.add_wallet(address, "ETH", "Purge Wallet")
 
     # Add a transaction for this wallet
-    await db.upsert_transactions([{
-        "chain": "ETH",
-        "tx_hash": "0xpurge_tx",
-        "block_num": 100,
-        "timestamp": datetime.now(tz=timezone.utc).isoformat(),
-        "from_addr": address.lower(),
-        "to_addr": "0xrecipient",
-        "value_native": "1.0",
-    }])
+    await db.upsert_transactions(
+        [
+            {
+                "chain": "ETH",
+                "tx_hash": "0xpurge_tx",
+                "block_num": 100,
+                "timestamp": datetime.now(tz=timezone.utc).isoformat(),
+                "from_addr": address.lower(),
+                "to_addr": "0xrecipient",
+                "value_native": "1.0",
+            }
+        ]
+    )
 
     result = await db.remove_wallet(address, "ETH", purge=True)
     assert result["status"] == "removed"
@@ -149,26 +155,30 @@ async def test_update_alert_webhook(db: Database) -> None:
 async def test_list_alerts_chain_filter(db: Database) -> None:
     """list_alerts with chain filter returns only matching chain."""
     now = datetime.now(tz=timezone.utc).isoformat()
-    await db.save_alert({
-        "address": "0xeth_alert",
-        "chain": "ETH",
-        "label": "",
-        "score": 80,
-        "direction": "neutral",
-        "net_flow_usd": 0.0,
-        "triggered_at": now,
-        "rule_id": "auto",
-    })
-    await db.save_alert({
-        "address": "bc1qbtc_alert",
-        "chain": "BTC",
-        "label": "",
-        "score": 85,
-        "direction": "neutral",
-        "net_flow_usd": 0.0,
-        "triggered_at": now,
-        "rule_id": "auto",
-    })
+    await db.save_alert(
+        {
+            "address": "0xeth_alert",
+            "chain": "ETH",
+            "label": "",
+            "score": 80,
+            "direction": "neutral",
+            "net_flow_usd": 0.0,
+            "triggered_at": now,
+            "rule_id": "auto",
+        }
+    )
+    await db.save_alert(
+        {
+            "address": "bc1qbtc_alert",
+            "chain": "BTC",
+            "label": "",
+            "score": 85,
+            "direction": "neutral",
+            "net_flow_usd": 0.0,
+            "triggered_at": now,
+            "rule_id": "auto",
+        }
+    )
 
     eth_alerts = await db.list_alerts(chain="ETH")
     assert all(a["chain"] == "ETH" for a in eth_alerts)
@@ -181,26 +191,30 @@ async def test_list_alerts_since_hours(db: Database) -> None:
     old_time = "2020-01-01T00:00:00+00:00"
     now = datetime.now(tz=timezone.utc).isoformat()
 
-    await db.save_alert({
-        "address": "0xold_alert",
-        "chain": "ETH",
-        "label": "",
-        "score": 75,
-        "direction": "neutral",
-        "net_flow_usd": 0.0,
-        "triggered_at": old_time,
-        "rule_id": "auto",
-    })
-    await db.save_alert({
-        "address": "0xrecent_alert",
-        "chain": "ETH",
-        "label": "",
-        "score": 80,
-        "direction": "neutral",
-        "net_flow_usd": 0.0,
-        "triggered_at": now,
-        "rule_id": "auto",
-    })
+    await db.save_alert(
+        {
+            "address": "0xold_alert",
+            "chain": "ETH",
+            "label": "",
+            "score": 75,
+            "direction": "neutral",
+            "net_flow_usd": 0.0,
+            "triggered_at": old_time,
+            "rule_id": "auto",
+        }
+    )
+    await db.save_alert(
+        {
+            "address": "0xrecent_alert",
+            "chain": "ETH",
+            "label": "",
+            "score": 80,
+            "direction": "neutral",
+            "net_flow_usd": 0.0,
+            "triggered_at": now,
+            "rule_id": "auto",
+        }
+    )
 
     recent = await db.list_alerts(since_hours=1)
     addrs = [a["address"] for a in recent]

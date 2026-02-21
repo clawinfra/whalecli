@@ -6,7 +6,7 @@ designed for use as an OpenClaw agent skill.
 Usage:
     skill = WhaleCliSkill()
     data = await skill.scan(chain="ETH", hours=4)
-    
+
     async for event in skill.stream(chain="ETH", interval=60):
         if event["type"] == "alert":
             print(f"Alert: {event['label']} score={event['score']}")
@@ -52,8 +52,17 @@ class WhaleCliSkill:
         Raises:
             RuntimeError: If whalecli returns exit code 2 (error).
         """
-        args = ["scan", "--chain", chain, "--hours", str(hours),
-                "--threshold", str(threshold), "--format", "json"]
+        args = [
+            "scan",
+            "--chain",
+            chain,
+            "--hours",
+            str(hours),
+            "--threshold",
+            str(threshold),
+            "--format",
+            "json",
+        ]
         if wallet:
             args.extend(["--wallet", wallet])
 
@@ -122,10 +131,14 @@ class WhaleCliSkill:
         proc = await asyncio.create_subprocess_exec(
             self.whalecli_path,
             "stream",
-            "--chain", chain,
-            "--interval", str(interval),
-            "--threshold", str(threshold),
-            "--format", "jsonl",
+            "--chain",
+            chain,
+            "--interval",
+            str(interval),
+            "--threshold",
+            str(threshold),
+            "--format",
+            "jsonl",
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
@@ -167,7 +180,8 @@ class WhaleCliSkill:
             (returncode, stdout, stderr) tuple.
         """
         proc = await asyncio.create_subprocess_exec(
-            self.whalecli_path, *args,
+            self.whalecli_path,
+            *args,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
@@ -182,6 +196,8 @@ class WhaleCliSkill:
         """Parse error JSON from stderr and raise RuntimeError."""
         try:
             error = json.loads(stderr)
-            raise RuntimeError(f"whalecli error [{error.get('code', 'UNKNOWN')}]: {error.get('message', stderr)}")
+            raise RuntimeError(
+                f"whalecli error [{error.get('code', 'UNKNOWN')}]: {error.get('message', stderr)}"
+            )
         except json.JSONDecodeError:
             raise RuntimeError(f"whalecli error: {stderr}")
