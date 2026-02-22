@@ -1,0 +1,47 @@
+name: Publish to PyPI
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install dependencies and run tests
+        run: |
+          uv venv
+          uv pip install -e ".[dev]"
+          uv run pytest --cov=whalecli --cov-report=term-missing
+
+      - name: Check coverage
+        run: uv run coverage report --fail-under=90
+
+      - name: Build package
+        run: |
+          uv pip install build
+          uv run python -m build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Verify
+        run: |
+          echo "Published whalecli to PyPI!"
+          echo "Check https://pypi.org/project/whalecli/"
