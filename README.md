@@ -13,8 +13,11 @@ Most crypto CLI tools are designed for humans first — pretty tables, colorful 
 ## Quick Install
 
 ```bash
-# From PyPI (when published)
+# From PyPI
 uv pip install whalecli
+
+# As an OpenClaw agent skill (via ClawHub)
+clawhub install whalecli
 
 # Development install
 git clone https://github.com/clawinfra/whalecli.git
