@@ -3,21 +3,16 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime, timezone
+from decimal import Decimal
+
 import pytest
 
-from whalecli.config import (
-    AlertConfig,
-    APIConfig,
-    CloudConfig,
-    DatabaseConfig,
-    OutputConfig,
-    WhalecliConfig,
-)
+from whalecli.config import (AlertConfig, APIConfig, CloudConfig,
+                             DatabaseConfig, OutputConfig, WhalecliConfig)
 from whalecli.db import Database
 from whalecli.fetchers.base import RawTransaction
 from whalecli.models import Transaction
-from decimal import Decimal
-from datetime import datetime, timezone
 
 # ── Config fixtures ───────────────────────────────────────────────────────────
 

@@ -10,15 +10,9 @@ from typing import Any
 
 import pytest
 
-from whalecli.output import (
-    DecimalEncoder,
-    format_csv,
-    format_json,
-    format_jsonl,
-    format_output,
-    format_table,
-    mask_api_key,
-)
+from whalecli.output import (DecimalEncoder, format_csv, format_json,
+                             format_jsonl, format_output, format_table,
+                             mask_api_key)
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 

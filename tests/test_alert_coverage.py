@@ -8,14 +8,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
+import pytest_asyncio
 import respx
 
 from whalecli.alert import dispatch_webhook, process_alerts
 from whalecli.config import WhalecliConfig
 from whalecli.db import Database
-
-
-import pytest_asyncio
 
 
 @pytest_asyncio.fixture(scope="function")

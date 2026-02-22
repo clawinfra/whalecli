@@ -4,24 +4,13 @@ from __future__ import annotations
 
 import pytest
 
-from whalecli.exceptions import (
-    APIError,
-    ConfigError,
-    ConfigInvalidError,
-    ConfigMissingError,
-    ConnectionFailedError,
-    DataError,
-    DatabaseError,
-    InvalidAddressError,
-    InvalidAPIKeyError,
-    NetworkError,
-    NetworkTimeoutError,
-    NoTransactionsError,
-    RateLimitError,
-    WalletExistsError,
-    WalletNotFoundError,
-    WhalecliError,
-)
+from whalecli.exceptions import (APIError, ConfigError, ConfigInvalidError,
+                                 ConfigMissingError, ConnectionFailedError,
+                                 DatabaseError, DataError, InvalidAddressError,
+                                 InvalidAPIKeyError, NetworkError,
+                                 NetworkTimeoutError, NoTransactionsError,
+                                 RateLimitError, WalletExistsError,
+                                 WalletNotFoundError, WhalecliError)
 
 # ── Hierarchy / exit codes ────────────────────────────────────────────────────
 

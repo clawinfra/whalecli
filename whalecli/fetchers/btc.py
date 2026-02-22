@@ -26,10 +26,7 @@ from typing import Any
 
 import httpx
 
-from whalecli.exceptions import (
-    ConnectionFailedError,
-    NetworkTimeoutError,
-)
+from whalecli.exceptions import ConnectionFailedError, NetworkTimeoutError
 from whalecli.models import Transaction
 
 MEMPOOL_BASE = "https://mempool.space/api"

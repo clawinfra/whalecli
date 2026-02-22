@@ -7,15 +7,8 @@ from decimal import Decimal
 
 import pytest
 
-from whalecli.models import (
-    AlertEvent,
-    AlertRule,
-    HLPosition,
-    ScoreBreakdown,
-    ScoreComponent,
-    Transaction,
-    Wallet,
-)
+from whalecli.models import (AlertEvent, AlertRule, HLPosition, ScoreBreakdown,
+                             ScoreComponent, Transaction, Wallet)
 
 # ── Wallet ────────────────────────────────────────────────────────────────────
 

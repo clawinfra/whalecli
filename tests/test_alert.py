@@ -10,14 +10,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 import pytest_asyncio
 
-from whalecli.alert import (
-    build_webhook_payload,
-    compute_scan_summary,
-    dispatch_webhook,
-    flow_passes_threshold,
-    process_alerts,
-    score_passes_threshold,
-)
+from whalecli.alert import (build_webhook_payload, compute_scan_summary,
+                            dispatch_webhook, flow_passes_threshold,
+                            process_alerts, score_passes_threshold)
 from whalecli.config import AlertConfig, WhalecliConfig
 from whalecli.db import Database
 from whalecli.scorer import score_to_severity
@@ -240,8 +235,8 @@ async def test_dispatch_webhook_no_url() -> None:
 @pytest.mark.asyncio
 async def test_dispatch_webhook_success(respx_mock) -> None:
     """dispatch_webhook returns 200 on successful delivery."""
-    import respx
     import httpx
+    import respx
 
     config = make_config(webhook_url="https://hooks.example.com/whale")
     alert = {
@@ -266,8 +261,8 @@ async def test_dispatch_webhook_success(respx_mock) -> None:
 @pytest.mark.asyncio
 async def test_dispatch_webhook_timeout_returns_none(respx_mock) -> None:
     """dispatch_webhook returns None on timeout."""
-    import respx
     import httpx
+    import respx
 
     config = make_config(webhook_url="https://hooks.example.com/whale")
     alert = {

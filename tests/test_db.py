@@ -9,7 +9,8 @@ import pytest
 import pytest_asyncio
 
 from whalecli.db import Database
-from whalecli.exceptions import DatabaseError, WalletExistsError, WalletNotFoundError
+from whalecli.exceptions import (DatabaseError, WalletExistsError,
+                                 WalletNotFoundError)
 
 
 @pytest_asyncio.fixture

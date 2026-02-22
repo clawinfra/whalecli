@@ -9,17 +9,10 @@ from decimal import Decimal
 
 import pytest
 
-from whalecli.output import (
-    format_csv,
-    format_json,
-    format_jsonl,
-    format_output,
-    format_table,
-    _flatten_dict,
-    _render_alerts_table,
-    _render_rules_table,
-    _render_wallet_list_table,
-)
+from whalecli.output import (_flatten_dict, _render_alerts_table,
+                             _render_rules_table, _render_wallet_list_table,
+                             format_csv, format_json, format_jsonl,
+                             format_output, format_table)
 
 
 def test_format_jsonl_alert_list() -> None:

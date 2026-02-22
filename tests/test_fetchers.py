@@ -12,12 +12,8 @@ import httpx
 import pytest
 import respx
 
-from whalecli.exceptions import (
-    InvalidAPIKeyError,
-    InvalidAddressError,
-    NetworkTimeoutError,
-    RateLimitError,
-)
+from whalecli.exceptions import (InvalidAddressError, InvalidAPIKeyError,
+                                 NetworkTimeoutError, RateLimitError)
 from whalecli.fetchers.btc import BTCFetcher
 from whalecli.fetchers.eth import ETHERSCAN_BASE, EtherscanClient
 from whalecli.fetchers.hl import HL_API_URL, HyperliquidClient

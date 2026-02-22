@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
 import httpx
 import pytest
 import respx
 
-from whalecli.fetchers.btc import BTCFetcher, MEMPOOL_BASE, BLOCKCHAIN_BASE
+from whalecli.fetchers.btc import BLOCKCHAIN_BASE, MEMPOOL_BASE, BTCFetcher
 from whalecli.fetchers.eth import ETHERSCAN_BASE, EtherscanClient
 from whalecli.fetchers.hl import HL_API_URL, HyperliquidClient
 from whalecli.models import Transaction
