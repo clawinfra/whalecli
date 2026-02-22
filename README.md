@@ -14,14 +14,12 @@ Most crypto CLI tools are designed for humans first — pretty tables, colorful 
 
 ```bash
 # From PyPI (when published)
-pip install whalecli
+uv pip install whalecli
 
 # Development install
-cd /media/DATA/clawd/whalecli
+git clone https://github.com/clawinfra/whalecli.git
+cd whalecli
 uv pip install -e .
-
-# Or with pip
-pip install -e .
 ```
 
 ## Quick Start (5 Commands)
