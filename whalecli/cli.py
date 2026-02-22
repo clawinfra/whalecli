@@ -28,8 +28,7 @@ from typing import Any
 import click
 
 from whalecli import __version__
-from whalecli.config import (WhalecliConfig, get_default_config_path,
-                             load_config, save_config)
+from whalecli.config import WhalecliConfig, get_default_config_path, load_config, save_config
 from whalecli.db import Database
 from whalecli.exceptions import WhalecliError
 from whalecli.output import format_output, mask_api_key

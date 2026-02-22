@@ -8,9 +8,14 @@ from pathlib import Path
 
 import pytest
 
-from whalecli.config import (WhalecliConfig, _apply_env_overrides,
-                             _validate_config, get_default_config_path,
-                             load_config, save_config)
+from whalecli.config import (
+    WhalecliConfig,
+    _apply_env_overrides,
+    _validate_config,
+    get_default_config_path,
+    load_config,
+    save_config,
+)
 from whalecli.exceptions import ConfigInvalidError, ConfigMissingError
 
 # ── load_config ───────────────────────────────────────────────────────────────

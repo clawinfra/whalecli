@@ -23,8 +23,7 @@ from typing import Any
 
 import aiosqlite
 
-from whalecli.exceptions import (DatabaseError, WalletExistsError,
-                                 WalletNotFoundError)
+from whalecli.exceptions import DatabaseError, WalletExistsError, WalletNotFoundError
 
 DEFAULT_DB_PATH = Path.home() / ".whalecli" / "whale.db"
 

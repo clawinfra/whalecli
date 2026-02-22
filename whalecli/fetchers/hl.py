@@ -22,8 +22,7 @@ from typing import Any
 
 import httpx
 
-from whalecli.exceptions import (APIError, ConnectionFailedError,
-                                 NetworkTimeoutError)
+from whalecli.exceptions import APIError, ConnectionFailedError, NetworkTimeoutError
 from whalecli.models import HLPosition, Transaction
 
 HL_API_URL = "https://api.hyperliquid.xyz/info"

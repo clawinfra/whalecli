@@ -10,9 +10,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 import pytest_asyncio
 
-from whalecli.alert import (build_webhook_payload, compute_scan_summary,
-                            dispatch_webhook, flow_passes_threshold,
-                            process_alerts, score_passes_threshold)
+from whalecli.alert import (
+    build_webhook_payload,
+    compute_scan_summary,
+    dispatch_webhook,
+    flow_passes_threshold,
+    process_alerts,
+    score_passes_threshold,
+)
 from whalecli.config import AlertConfig, WhalecliConfig
 from whalecli.db import Database
 from whalecli.scorer import score_to_severity

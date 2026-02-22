@@ -25,9 +25,14 @@ from typing import Any
 
 import httpx
 
-from whalecli.exceptions import (APIError, ConnectionFailedError,
-                                 InvalidAddressError, InvalidAPIKeyError,
-                                 NetworkTimeoutError, RateLimitError)
+from whalecli.exceptions import (
+    APIError,
+    ConnectionFailedError,
+    InvalidAddressError,
+    InvalidAPIKeyError,
+    NetworkTimeoutError,
+    RateLimitError,
+)
 from whalecli.models import Transaction
 
 # Etherscan API base URL

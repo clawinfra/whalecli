@@ -8,8 +8,14 @@ from decimal import Decimal
 
 import pytest
 
-from whalecli.config import (AlertConfig, APIConfig, CloudConfig,
-                             DatabaseConfig, OutputConfig, WhalecliConfig)
+from whalecli.config import (
+    AlertConfig,
+    APIConfig,
+    CloudConfig,
+    DatabaseConfig,
+    OutputConfig,
+    WhalecliConfig,
+)
 from whalecli.db import Database
 from whalecli.fetchers.base import RawTransaction
 from whalecli.models import Transaction

@@ -8,11 +8,15 @@ from decimal import Decimal
 import pytest
 
 from whalecli.models import Transaction
-from whalecli.scorer import (compute_correlation_score,
-                             compute_exchange_flow_score,
-                             compute_net_flow_score, compute_velocity_score,
-                             load_exchange_addresses, score_to_severity,
-                             score_wallet)
+from whalecli.scorer import (
+    compute_correlation_score,
+    compute_exchange_flow_score,
+    compute_net_flow_score,
+    compute_velocity_score,
+    load_exchange_addresses,
+    score_to_severity,
+    score_wallet,
+)
 
 ETH_ADDR = "0xabcdef1234567890abcdef1234567890abcdef12"
 TS = datetime(2026, 2, 22, 12, 0, 0, tzinfo=timezone.utc).isoformat()
