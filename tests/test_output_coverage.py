@@ -11,13 +11,9 @@ import pytest
 
 from whalecli.output import (
     _flatten_dict,
-    _render_alerts_table,
-    _render_rules_table,
-    _render_wallet_list_table,
     format_csv,
     format_json,
     format_jsonl,
-    format_output,
     format_table,
 )
 
@@ -175,7 +171,6 @@ def test_decimal_encoder_handles_other_types() -> None:
     from whalecli.output import DecimalEncoder
 
     encoder = DecimalEncoder()
-    import pytest
 
     with pytest.raises(TypeError):
         encoder.default(object())

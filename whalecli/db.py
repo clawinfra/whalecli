@@ -14,10 +14,9 @@ Schema:
 
 from __future__ import annotations
 
-import asyncio
 import json
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -160,7 +159,7 @@ class Database:
             await self._conn.close()
             self._conn = None
 
-    async def __aenter__(self) -> "Database":
+    async def __aenter__(self) -> Database:
         await self.connect()
         return self
 
@@ -187,7 +186,7 @@ class Database:
         assert self._conn is not None
         chain = chain.upper()
         tags_json = json.dumps(tags or [])
-        added_at = datetime.now(tz=timezone.utc).isoformat()
+        added_at = datetime.now(tz=UTC).isoformat()
 
         try:
             async with self._conn.execute(
@@ -394,7 +393,7 @@ class Database:
         Returns number of rows inserted/updated.
         """
         assert self._conn is not None
-        now_iso = datetime.now(tz=timezone.utc).isoformat()
+        now_iso = datetime.now(tz=UTC).isoformat()
         count = 0
 
         for tx in transactions:
@@ -444,8 +443,8 @@ class Database:
         """
         assert self._conn is not None
 
-        cutoff_fetch = datetime.now(tz=timezone.utc).timestamp() - (ttl_hours * 3600)
-        cutoff_fetch_iso = datetime.fromtimestamp(cutoff_fetch, tz=timezone.utc).isoformat()
+        cutoff_fetch = datetime.now(tz=UTC).timestamp() - (ttl_hours * 3600)
+        cutoff_fetch_iso = datetime.fromtimestamp(cutoff_fetch, tz=UTC).isoformat()
 
         # Check if we have ANY fresh records for this address+chain
         async with self._conn.execute(
@@ -519,8 +518,8 @@ class Database:
     ) -> list[dict[str, Any]]:
         """Get score history for a wallet over N days."""
         assert self._conn is not None
-        cutoff = datetime.now(tz=timezone.utc).timestamp() - (days * 86400)
-        cutoff_iso = datetime.fromtimestamp(cutoff, tz=timezone.utc).isoformat()
+        cutoff = datetime.now(tz=UTC).timestamp() - (days * 86400)
+        cutoff_iso = datetime.fromtimestamp(cutoff, tz=UTC).isoformat()
 
         rows = []
         async with self._conn.execute(
@@ -544,7 +543,7 @@ class Database:
     async def save_alert(self, alert_data: dict[str, Any]) -> dict[str, Any]:
         """Persist an alert event. Returns alert with generated id."""
         assert self._conn is not None
-        triggered_at = alert_data.get("triggered_at", datetime.now(tz=timezone.utc).isoformat())
+        triggered_at = alert_data.get("triggered_at", datetime.now(tz=UTC).isoformat())
 
         async with self._conn.execute(
             """
@@ -591,8 +590,8 @@ class Database:
             params.append(chain.upper())
 
         if since_hours:
-            cutoff = datetime.now(tz=timezone.utc).timestamp() - (since_hours * 3600)
-            cutoff_iso = datetime.fromtimestamp(cutoff, tz=timezone.utc).isoformat()
+            cutoff = datetime.now(tz=UTC).timestamp() - (since_hours * 3600)
+            cutoff_iso = datetime.fromtimestamp(cutoff, tz=UTC).isoformat()
             conditions.append("triggered_at >= ?")
             params.append(cutoff_iso)
 
@@ -619,7 +618,7 @@ class Database:
         """
         assert self._conn is not None
         cutoff_ts = time.time() - window_seconds
-        cutoff_iso = datetime.fromtimestamp(cutoff_ts, tz=timezone.utc).isoformat()
+        cutoff_iso = datetime.fromtimestamp(cutoff_ts, tz=UTC).isoformat()
 
         async with self._conn.execute(
             """
@@ -662,7 +661,7 @@ class Database:
                 rule.get("window", "1h"),
                 rule.get("chain"),
                 rule.get("webhook_url"),
-                rule.get("created_at", datetime.now(tz=timezone.utc).isoformat()),
+                rule.get("created_at", datetime.now(tz=UTC).isoformat()),
                 1 if rule.get("active", True) else 0,
             ),
         )

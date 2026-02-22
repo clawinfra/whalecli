@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
-from decimal import Decimal
+from datetime import UTC, datetime, timedelta
 
 import httpx
 import pytest
@@ -12,7 +11,6 @@ import respx
 from whalecli.fetchers.btc import BLOCKCHAIN_BASE, MEMPOOL_BASE, BTCFetcher
 from whalecli.fetchers.eth import ETHERSCAN_BASE, EtherscanClient
 from whalecli.fetchers.hl import HL_API_URL, HyperliquidClient
-from whalecli.models import Transaction
 
 ETH_ADDR = "0xd8da6bf26964af9d7eed9e03e53415d37aa96045"
 BTC_ADDR = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
@@ -37,9 +35,9 @@ def _eth_empty_resp() -> dict:
 @respx.mock
 async def test_eth_fetches_both_normal_and_token_txns() -> None:
     """EtherscanClient fetches native + ERC-20 token transactions."""
-    from datetime import datetime, timezone
+    from datetime import datetime
 
-    now_ts = str(int(datetime.now(tz=timezone.utc).timestamp()) - 3600)  # 1 hour ago
+    now_ts = str(int(datetime.now(tz=UTC).timestamp()) - 3600)  # 1 hour ago
 
     native_tx = {
         "hash": "0xnative",
@@ -87,9 +85,9 @@ async def test_eth_fetches_both_normal_and_token_txns() -> None:
 @respx.mock
 async def test_eth_deduplicates_transactions() -> None:
     """EtherscanClient returns at most 2 results when native and token have different hashes."""
-    from datetime import datetime, timezone
+    from datetime import datetime
 
-    now_ts = str(int(datetime.now(tz=timezone.utc).timestamp()) - 1800)
+    now_ts = str(int(datetime.now(tz=UTC).timestamp()) - 1800)
 
     tx_native = {
         "hash": "0xnative_only",
@@ -137,9 +135,9 @@ async def test_eth_deduplicates_transactions() -> None:
 @respx.mock
 async def test_eth_skips_error_transactions() -> None:
     """EtherscanClient filters out failed transactions (isError='1')."""
-    from datetime import datetime, timezone
+    from datetime import datetime
 
-    now_ts = str(int(datetime.now(tz=timezone.utc).timestamp()) - 1800)
+    now_ts = str(int(datetime.now(tz=UTC).timestamp()) - 1800)
     failed_tx = {
         "hash": "0xfailed",
         "blockNumber": "18000001",
@@ -170,7 +168,7 @@ async def test_eth_skips_error_transactions() -> None:
 @respx.mock
 async def test_eth_filters_by_time_window() -> None:
     """EtherscanClient filters out transactions older than the window."""
-    very_old_ts = str(int(datetime(2020, 1, 1, tzinfo=timezone.utc).timestamp()))
+    very_old_ts = str(int(datetime(2020, 1, 1, tzinfo=UTC).timestamp()))
     old_tx = {
         "hash": "0xold",
         "blockNumber": "15000001",
@@ -216,7 +214,7 @@ async def test_eth_connection_error_raises_network_error() -> None:
 @respx.mock
 async def test_eth_get_wallet_age_new_wallet() -> None:
     """get_wallet_age returns 0 for a new wallet with first tx today."""
-    now_ts = str(int(datetime.now(tz=timezone.utc).timestamp()))
+    now_ts = str(int(datetime.now(tz=UTC).timestamp()))
     tx = {
         "hash": "0xfirst",
         "blockNumber": "18000001",
@@ -349,7 +347,7 @@ async def test_btc_historical_fetch_blockchain_info() -> None:
         "txs": [
             {
                 "hash": "btcold001",
-                "time": int((datetime.now(tz=timezone.utc) - timedelta(hours=48)).timestamp()),
+                "time": int((datetime.now(tz=UTC) - timedelta(hours=48)).timestamp()),
                 "block_height": 810000,
                 "inputs": [],
                 "out": [{"addr": BTC_ADDR, "value": 3_000_000}],
@@ -377,7 +375,7 @@ async def test_btc_historical_fetch_blockchain_info() -> None:
 async def test_btc_deduplicates_mempool_and_blockchain_info() -> None:
     """Transactions appearing in both sources are deduplicated."""
     shared_hash = "btcshared001"
-    block_time = int((datetime.now(tz=timezone.utc) - timedelta(hours=12)).timestamp())
+    block_time = int((datetime.now(tz=UTC) - timedelta(hours=12)).timestamp())
 
     mempool_resp = [
         {
@@ -447,7 +445,7 @@ async def test_btc_get_mempool_txns() -> None:
 @respx.mock
 async def test_btc_get_wallet_age(monkeypatch) -> None:
     """get_wallet_age returns age in days based on oldest tx."""
-    old_ts = int(datetime(2020, 1, 1, tzinfo=timezone.utc).timestamp())
+    old_ts = int(datetime(2020, 1, 1, tzinfo=UTC).timestamp())
     data = [
         {
             "txid": "first",
@@ -477,7 +475,7 @@ async def test_btc_parse_malformed_tx_returns_none() -> None:
 
     fetcher = BTCFetcher()
     # Should not raise — malformed tx is skipped
-    txns = await fetcher.get_transactions(BTC_ADDR, hours=24)
+    await fetcher.get_transactions(BTC_ADDR, hours=24)
     await fetcher.close()
 
     # btc txn has no status so won't be parsed with block_time logic
@@ -488,8 +486,8 @@ async def test_btc_parse_malformed_tx_returns_none() -> None:
 @respx.mock
 async def test_btc_blockchain_info_pagination() -> None:
     """Blockchain.info pagination stops when cutoff is reached."""
-    far_future_cutoff_ts = int((datetime.now(tz=timezone.utc) - timedelta(hours=48)).timestamp())
-    very_old_ts = int(datetime(2019, 6, 1, tzinfo=timezone.utc).timestamp())
+    far_future_cutoff_ts = int((datetime.now(tz=UTC) - timedelta(hours=48)).timestamp())
+    very_old_ts = int(datetime(2019, 6, 1, tzinfo=UTC).timestamp())
 
     # Return one recent transaction then one that's too old
     blockchain_resp = {
@@ -537,7 +535,7 @@ async def test_btc_blockchain_info_pagination() -> None:
 @respx.mock
 async def test_hl_buy_fill_creates_inflow_transaction() -> None:
     """Buy-side fills (side='B') → from=market, to=wallet."""
-    now_ms = int(datetime.now(tz=timezone.utc).timestamp()) * 1000
+    now_ms = int(datetime.now(tz=UTC).timestamp()) * 1000
     fill = {
         "oid": 1,
         "tid": 100,
@@ -564,7 +562,7 @@ async def test_hl_buy_fill_creates_inflow_transaction() -> None:
 @respx.mock
 async def test_hl_sell_fill_creates_outflow_transaction() -> None:
     """Sell-side fills (side='A') → from=wallet, to=market."""
-    now_ms = int(datetime.now(tz=timezone.utc).timestamp()) * 1000
+    now_ms = int(datetime.now(tz=UTC).timestamp()) * 1000
     fill = {
         "oid": 2,
         "tid": 200,
@@ -591,7 +589,7 @@ async def test_hl_sell_fill_creates_outflow_transaction() -> None:
 @respx.mock
 async def test_hl_filters_old_fills() -> None:
     """Fills older than the window are excluded."""
-    old_ms = int(datetime(2020, 1, 1, tzinfo=timezone.utc).timestamp()) * 1000
+    old_ms = int(datetime(2020, 1, 1, tzinfo=UTC).timestamp()) * 1000
     fill = {
         "oid": 3,
         "tid": 300,
@@ -678,7 +676,7 @@ async def test_hl_timeout_raises_network_timeout_error() -> None:
 @respx.mock
 async def test_hl_get_wallet_age_with_fills() -> None:
     """get_wallet_age returns correct days since first HL fill."""
-    old_ms = int(datetime(2022, 1, 1, tzinfo=timezone.utc).timestamp()) * 1000
+    old_ms = int(datetime(2022, 1, 1, tzinfo=UTC).timestamp()) * 1000
     fill = {
         "oid": 99,
         "tid": 999,

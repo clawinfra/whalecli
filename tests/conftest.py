@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
@@ -17,7 +17,6 @@ from whalecli.config import (
     WhalecliConfig,
 )
 from whalecli.db import Database
-from whalecli.fetchers.base import RawTransaction
 from whalecli.models import Transaction
 
 # ── Config fixtures ───────────────────────────────────────────────────────────
@@ -97,7 +96,7 @@ BTC_ADDR_VALID = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
 @pytest.fixture
 def sample_eth_transactions() -> list[Transaction]:
     """10 ETH transactions with known values for scoring tests."""
-    ts_base = int(datetime(2026, 2, 22, 0, 0, 0, tzinfo=timezone.utc).timestamp())
+    ts_base = int(datetime(2026, 2, 22, 0, 0, 0, tzinfo=UTC).timestamp())
     txns = []
 
     # 5 inflows (large accumulation signal)
@@ -108,7 +107,7 @@ def sample_eth_transactions() -> list[Transaction]:
                 chain="ETH",
                 from_addr="0xsome_whale_sender",
                 to_addr=ETH_ADDR_1,
-                timestamp=datetime.fromtimestamp(ts_base + i * 3600, tz=timezone.utc).isoformat(),
+                timestamp=datetime.fromtimestamp(ts_base + i * 3600, tz=UTC).isoformat(),
                 value_native=Decimal("10.0"),  # 10 ETH each
                 block_num=18_000_000 + i,
                 value_usd=30_000.0,  # $30k each
@@ -127,9 +126,7 @@ def sample_eth_transactions() -> list[Transaction]:
                 chain="ETH",
                 from_addr=ETH_ADDR_1,
                 to_addr="0xsome_recipient",
-                timestamp=datetime.fromtimestamp(
-                    ts_base + (i + 5) * 3600, tz=timezone.utc
-                ).isoformat(),
+                timestamp=datetime.fromtimestamp(ts_base + (i + 5) * 3600, tz=UTC).isoformat(),
                 value_native=Decimal("2.0"),
                 block_num=18_000_100 + i,
                 value_usd=6_000.0,
@@ -146,7 +143,7 @@ def sample_eth_transactions() -> list[Transaction]:
 @pytest.fixture
 def sample_btc_transactions() -> list[Transaction]:
     """5 BTC transactions."""
-    ts_base = int(datetime(2026, 2, 22, 0, 0, 0, tzinfo=timezone.utc).timestamp())
+    ts_base = int(datetime(2026, 2, 22, 0, 0, 0, tzinfo=UTC).timestamp())
     txns = []
     for i in range(5):
         txns.append(
@@ -155,7 +152,7 @@ def sample_btc_transactions() -> list[Transaction]:
                 chain="BTC",
                 from_addr="multiple",
                 to_addr=BTC_ADDR_VALID,
-                timestamp=datetime.fromtimestamp(ts_base + i * 3600, tz=timezone.utc).isoformat(),
+                timestamp=datetime.fromtimestamp(ts_base + i * 3600, tz=UTC).isoformat(),
                 value_native=Decimal("0.5"),
                 block_num=800_000 + i,
                 value_usd=25_000.0,
@@ -171,7 +168,7 @@ def sample_btc_transactions() -> list[Transaction]:
 @pytest.fixture
 def large_inflow_transactions() -> list[Transaction]:
     """Transactions representing a large inflow ($10M+)."""
-    ts = datetime(2026, 2, 22, 12, 0, 0, tzinfo=timezone.utc).isoformat()
+    ts = datetime(2026, 2, 22, 12, 0, 0, tzinfo=UTC).isoformat()
     return [
         Transaction(
             tx_hash=f"0xlarge{i:04d}",

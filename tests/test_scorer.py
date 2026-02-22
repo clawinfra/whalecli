@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
-
-import pytest
 
 from whalecli.models import Transaction
 from whalecli.scorer import (
@@ -19,7 +17,7 @@ from whalecli.scorer import (
 )
 
 ETH_ADDR = "0xabcdef1234567890abcdef1234567890abcdef12"
-TS = datetime(2026, 2, 22, 12, 0, 0, tzinfo=timezone.utc).isoformat()
+TS = datetime(2026, 2, 22, 12, 0, 0, tzinfo=UTC).isoformat()
 
 
 def make_tx(
@@ -61,7 +59,7 @@ def test_net_flow_score_zero_transactions() -> None:
 def test_net_flow_score_pure_inflow() -> None:
     """Large inflow should score > 0 and direction = accumulating."""
     txns = [make_tx(to_addr=ETH_ADDR, value_usd=2_000_000.0, tx_hash=f"0x{i}") for i in range(5)]
-    score, direction, net, inflow, outflow = compute_net_flow_score(txns, ETH_ADDR, 365)
+    score, direction, net, inflow, _outflow = compute_net_flow_score(txns, ETH_ADDR, 365)
     assert score > 0
     assert direction == "accumulating"
     assert net > 0
@@ -74,7 +72,7 @@ def test_net_flow_score_pure_outflow() -> None:
         make_tx(from_addr=ETH_ADDR, to_addr="0xrecip", value_usd=1_500_000.0, tx_hash=f"0x{i}")
         for i in range(3)
     ]
-    score, direction, net, inflow, outflow = compute_net_flow_score(txns, ETH_ADDR, 365)
+    _score, direction, net, _inflow, outflow = compute_net_flow_score(txns, ETH_ADDR, 365)
     assert direction == "distributing"
     assert net < 0
     assert outflow == 4_500_000.0

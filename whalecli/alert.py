@@ -10,7 +10,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -78,7 +78,7 @@ async def process_alerts(
             continue
 
         severity = score_to_severity(score)
-        triggered_at = datetime.now(tz=timezone.utc).isoformat()
+        triggered_at = datetime.now(tz=UTC).isoformat()
 
         alert_data = {
             "address": address,

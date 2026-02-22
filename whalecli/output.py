@@ -205,7 +205,10 @@ def _score_color(score: int) -> str:
 
 def _render_scan_table(console: Console, data: dict[str, Any]) -> None:
     table = Table(
-        title=f"Whale Scan — {data.get('chain', 'all').upper()} | {data.get('window_hours', 24)}h window",
+        title=(
+            f"Whale Scan — {data.get('chain', 'all').upper()}"
+            f" | {data.get('window_hours', 24)}h window"
+        ),
         show_header=True,
         header_style="bold blue",
     )

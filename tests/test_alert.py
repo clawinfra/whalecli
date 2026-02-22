@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import json
-from datetime import datetime, timezone
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 import pytest_asyncio
@@ -18,9 +15,8 @@ from whalecli.alert import (
     process_alerts,
     score_passes_threshold,
 )
-from whalecli.config import AlertConfig, WhalecliConfig
+from whalecli.config import WhalecliConfig
 from whalecli.db import Database
-from whalecli.scorer import score_to_severity
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -241,7 +237,6 @@ async def test_dispatch_webhook_no_url() -> None:
 async def test_dispatch_webhook_success(respx_mock) -> None:
     """dispatch_webhook returns 200 on successful delivery."""
     import httpx
-    import respx
 
     config = make_config(webhook_url="https://hooks.example.com/whale")
     alert = {
@@ -267,7 +262,6 @@ async def test_dispatch_webhook_success(respx_mock) -> None:
 async def test_dispatch_webhook_timeout_returns_none(respx_mock) -> None:
     """dispatch_webhook returns None on timeout."""
     import httpx
-    import respx
 
     config = make_config(webhook_url="https://hooks.example.com/whale")
     alert = {

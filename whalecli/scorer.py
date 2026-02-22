@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import json
 import math
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -296,7 +296,7 @@ def score_wallet(
     Returns:
         Dict matching the scan result wallet schema from docs/API.md
     """
-    computed_at = datetime.now(tz=timezone.utc).isoformat()
+    computed_at = datetime.now(tz=UTC).isoformat()
 
     # Component 1: Net Flow
     nf_score, direction, net_flow_usd, inflow_usd, outflow_usd = compute_net_flow_score(

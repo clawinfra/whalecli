@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import asyncio
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 
@@ -59,7 +59,7 @@ class BTCFetcher:
         For hours > 24: uses Blockchain.info /rawaddr/{addr} with pagination.
         Merges and deduplicates by txid.
         """
-        cutoff = datetime.now(tz=timezone.utc) - timedelta(hours=hours)
+        cutoff = datetime.now(tz=UTC) - timedelta(hours=hours)
 
         try:
             # Always try Mempool.space first for recent confirmed + unconfirmed
@@ -85,7 +85,7 @@ class BTCFetcher:
 
     async def get_mempool_txns(self, address: str) -> list[Transaction]:
         """Fetch unconfirmed mempool transactions for address."""
-        cutoff = datetime.now(tz=timezone.utc) - timedelta(hours=1)
+        cutoff = datetime.now(tz=UTC) - timedelta(hours=1)
         return await self._fetch_mempool(address, cutoff, mempool_only=True)
 
     async def get_wallet_age(self, address: str) -> int:
@@ -100,9 +100,9 @@ class BTCFetcher:
                 last_item = data[-1]
                 if "status" in last_item and "block_time" in last_item["status"]:
                     first_ts = last_item["status"]["block_time"]
-                    first_dt = datetime.fromtimestamp(first_ts, tz=timezone.utc)
-                    return max((datetime.now(tz=timezone.utc) - first_dt).days, 0)
-        except Exception:
+                    first_dt = datetime.fromtimestamp(first_ts, tz=UTC)
+                    return max((datetime.now(tz=UTC) - first_dt).days, 0)
+        except Exception:  # noqa: S110
             pass
         return 0
 
@@ -155,12 +155,12 @@ class BTCFetcher:
                 continue  # Only want unconfirmed
 
             if block_time:
-                ts = datetime.fromtimestamp(block_time, tz=timezone.utc)
+                ts = datetime.fromtimestamp(block_time, tz=UTC)
                 if ts < cutoff:
                     continue
                 ts_str = ts.isoformat()
             else:
-                ts_str = datetime.now(tz=timezone.utc).isoformat()
+                ts_str = datetime.now(tz=UTC).isoformat()
 
             t = self._parse_mempool_tx(raw, address, ts_str)
             if t:
@@ -192,7 +192,7 @@ class BTCFetcher:
 
             for raw in txns:
                 ts_unix = raw.get("time", 0)
-                ts = datetime.fromtimestamp(ts_unix, tz=timezone.utc)
+                ts = datetime.fromtimestamp(ts_unix, tz=UTC)
                 if ts < cutoff:
                     # Pagination is newest-first, so once we hit cutoff, stop
                     return results
@@ -232,7 +232,7 @@ class BTCFetcher:
             is_inflow = received_sats > sent_sats
             value_sats = abs(received_sats - sent_sats)
             value_btc = Decimal(value_sats) / SATOSHIS_PER_BTC
-            fee_sats = raw.get("fee", 0)
+            raw.get("fee", 0)
 
             # Determine from/to for normalization
             if is_inflow:

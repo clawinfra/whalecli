@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 import pytest_asyncio
 
 from whalecli.db import Database
-from whalecli.exceptions import DatabaseError, WalletExistsError, WalletNotFoundError
+from whalecli.exceptions import WalletExistsError, WalletNotFoundError
 
 
 @pytest_asyncio.fixture
@@ -224,7 +223,7 @@ async def test_save_and_get_score_history(db: Database) -> None:
     score = {
         "address": "0xscored_addr",
         "chain": "ETH",
-        "computed_at": datetime.now(tz=timezone.utc).isoformat(),
+        "computed_at": datetime.now(tz=UTC).isoformat(),
         "window_hours": 24,
         "total": 82,
         "net_flow": 35,
@@ -255,7 +254,7 @@ async def test_save_alert(db: Database) -> None:
         "score": 85,
         "direction": "accumulating",
         "net_flow_usd": 5_000_000.0,
-        "triggered_at": datetime.now(tz=timezone.utc).isoformat(),
+        "triggered_at": datetime.now(tz=UTC).isoformat(),
         "rule_id": "rule_001",
     }
     saved = await db.save_alert(alert)
@@ -273,7 +272,7 @@ async def test_list_alerts(db: Database) -> None:
         "score": 90,
         "direction": "distributing",
         "net_flow_usd": -3_000_000.0,
-        "triggered_at": datetime.now(tz=timezone.utc).isoformat(),
+        "triggered_at": datetime.now(tz=UTC).isoformat(),
         "rule_id": "auto",
     }
     await db.save_alert(alert)
@@ -292,7 +291,7 @@ async def test_is_duplicate_alert_within_window(db: Database) -> None:
         "score": 80,
         "direction": "neutral",
         "net_flow_usd": 0.0,
-        "triggered_at": datetime.now(tz=timezone.utc).isoformat(),
+        "triggered_at": datetime.now(tz=UTC).isoformat(),
         "rule_id": "auto",
     }
     await db.save_alert(alert)
@@ -332,7 +331,7 @@ async def test_save_and_list_alert_rules(db: Database) -> None:
         "window": "1h",
         "chain": "ETH",
         "webhook_url": None,
-        "created_at": datetime.now(tz=timezone.utc).isoformat(),
+        "created_at": datetime.now(tz=UTC).isoformat(),
         "active": True,
     }
     await db.save_alert_rule(rule)

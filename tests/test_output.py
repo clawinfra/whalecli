@@ -11,7 +11,6 @@ from typing import Any
 import pytest
 
 from whalecli.output import (
-    DecimalEncoder,
     format_csv,
     format_json,
     format_jsonl,
@@ -276,7 +275,7 @@ def test_format_csv_values_present() -> None:
 def test_format_csv_empty_wallets() -> None:
     """Empty wallet list should still produce a valid CSV with header."""
     data = {"wallets": []}
-    result = format_csv(data)
+    format_csv(data)
     # Should not raise; may produce empty CSV
 
 

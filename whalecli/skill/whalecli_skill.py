@@ -18,8 +18,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-import sys
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 
 
 class WhaleCliSkill:
@@ -143,7 +142,7 @@ class WhaleCliSkill:
             stderr=asyncio.subprocess.PIPE,
         )
 
-        assert proc.stdout is not None  # noqa: S101
+        assert proc.stdout is not None
 
         async for raw_line in proc.stdout:
             line = raw_line.decode().strip()
@@ -167,7 +166,7 @@ class WhaleCliSkill:
         if label:
             args.extend(["--label", label])
 
-        code, stdout, stderr = await self._run(*args)
+        code, _stdout, stderr = await self._run(*args)
         if code == 2:
             self._raise_error(stderr)
         return {"success": True, "address": address, "chain": chain, "label": label}
@@ -199,5 +198,5 @@ class WhaleCliSkill:
             raise RuntimeError(
                 f"whalecli error [{error.get('code', 'UNKNOWN')}]: {error.get('message', stderr)}"
             )
-        except json.JSONDecodeError:
-            raise RuntimeError(f"whalecli error: {stderr}")
+        except json.JSONDecodeError as exc:
+            raise RuntimeError(f"whalecli error: {stderr}") from exc

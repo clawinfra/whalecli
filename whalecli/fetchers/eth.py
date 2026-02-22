@@ -19,14 +19,13 @@ from __future__ import annotations
 import asyncio
 import re
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 
 import httpx
 
 from whalecli.exceptions import (
-    APIError,
     ConnectionFailedError,
     InvalidAddressError,
     InvalidAPIKeyError,
@@ -101,7 +100,7 @@ class EtherscanClient:
                 f"Invalid ETH address: {address!r}. Must be 0x + 40 hex chars."
             )
 
-        cutoff = datetime.now(tz=timezone.utc) - timedelta(hours=hours)
+        cutoff = datetime.now(tz=UTC) - timedelta(hours=hours)
         cutoff_ts = int(cutoff.timestamp())
 
         # Fetch both native txns and token transfers concurrently
@@ -149,8 +148,8 @@ class EtherscanClient:
             if data["status"] != "1" or not data["result"]:
                 return 0
             first_tx_ts = int(data["result"][0]["timeStamp"])
-            first_dt = datetime.fromtimestamp(first_tx_ts, tz=timezone.utc)
-            age = (datetime.now(tz=timezone.utc) - first_dt).days
+            first_dt = datetime.fromtimestamp(first_tx_ts, tz=UTC)
+            age = (datetime.now(tz=UTC) - first_dt).days
             return max(age, 0)
         except httpx.TimeoutException as e:
             raise NetworkTimeoutError(f"Etherscan timeout on wallet age: {e}") from e
@@ -242,12 +241,12 @@ class EtherscanClient:
             if raw.get("isError") == "1":
                 return None
 
-            ts = datetime.fromtimestamp(int(raw["timeStamp"]), tz=timezone.utc)
+            ts = datetime.fromtimestamp(int(raw["timeStamp"]), tz=UTC)
             value_wei = int(raw.get("value", 0))
             value_eth = Decimal(value_wei) / Decimal(10**18)
             gas_price = int(raw.get("gasPrice", 0))
             gas_used = int(raw.get("gasUsed", 0))
-            gas_eth = Decimal(gas_price * gas_used) / Decimal(10**18)
+            Decimal(gas_price * gas_used) / Decimal(10**18)
 
             return Transaction(
                 tx_hash=raw["hash"],
@@ -269,7 +268,7 @@ class EtherscanClient:
     def _parse_token_tx(self, raw: dict[str, Any], address: str) -> Transaction | None:
         """Parse an ERC-20 token transfer from Etherscan API response."""
         try:
-            ts = datetime.fromtimestamp(int(raw["timeStamp"]), tz=timezone.utc)
+            ts = datetime.fromtimestamp(int(raw["timeStamp"]), tz=UTC)
             decimals = int(raw.get("tokenDecimal", 18))
             raw_value = int(raw.get("value", 0))
             value = Decimal(raw_value) / Decimal(10**decimals)

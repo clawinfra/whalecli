@@ -5,9 +5,6 @@ Uses respx to mock httpx calls (no real network I/O).
 
 from __future__ import annotations
 
-import json
-from decimal import Decimal
-
 import httpx
 import pytest
 import respx

@@ -19,7 +19,7 @@ from __future__ import annotations
 import asyncio
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
@@ -50,7 +50,7 @@ def emit_event(event: dict[str, Any]) -> None:
 
 
 def _now_iso() -> str:
-    return datetime.now(tz=timezone.utc).isoformat()
+    return datetime.now(tz=UTC).isoformat()
 
 
 async def run_stream(
@@ -104,7 +104,7 @@ async def run_stream(
                 wallets_checked = len(scored_wallets)
 
                 # First pass: compute all directions for correlation
-                directions = {w["address"]: w.get("direction", "neutral") for w in scored_wallets}
+                {w["address"]: w.get("direction", "neutral") for w in scored_wallets}
 
                 for wallet in scored_wallets:
                     score = wallet.get("score", 0)
@@ -217,9 +217,9 @@ async def _fetch_and_score(
     """Fetch transactions for a single wallet and compute its score."""
     from datetime import timedelta
 
-    now = datetime.now(tz=timezone.utc)
-    from_ts = int((now - timedelta(hours=hours)).timestamp())
-    to_ts = int(now.timestamp())
+    now = datetime.now(tz=UTC)
+    int((now - timedelta(hours=hours)).timestamp())
+    int(now.timestamp())
 
     try:
         raw_txns: list[Transaction] = await fetcher.get_transactions(wallet["address"], hours)

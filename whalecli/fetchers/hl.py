@@ -16,7 +16,7 @@ Design decisions:
 from __future__ import annotations
 
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 
@@ -50,13 +50,13 @@ class HyperliquidClient:
         - value_native: fill size in asset units (Decimal)
         - value_usd: fill size × fill price (USD notional)
         """
-        cutoff = datetime.now(tz=timezone.utc) - timedelta(hours=hours)
+        cutoff = datetime.now(tz=UTC) - timedelta(hours=hours)
         fills = await self._get_fills(address)
 
         txns: list[Transaction] = []
         for fill in fills:
             ts_ms = fill.get("time", 0)
-            ts = datetime.fromtimestamp(ts_ms / 1000, tz=timezone.utc)
+            ts = datetime.fromtimestamp(ts_ms / 1000, tz=UTC)
             if ts < cutoff:
                 continue
 
@@ -126,7 +126,7 @@ class HyperliquidClient:
                     size_usd=size_usd,
                     entry_price=entry_px,
                     unrealized_pnl=unrealized_pnl,
-                    timestamp=datetime.now(tz=timezone.utc).isoformat(),
+                    timestamp=datetime.now(tz=UTC).isoformat(),
                 )
             )
 
@@ -139,8 +139,8 @@ class HyperliquidClient:
             return 0
         oldest_fill = min(fills, key=lambda f: f.get("time", float("inf")))
         ts_ms = oldest_fill.get("time", 0)
-        first_dt = datetime.fromtimestamp(ts_ms / 1000, tz=timezone.utc)
-        return max((datetime.now(tz=timezone.utc) - first_dt).days, 0)
+        first_dt = datetime.fromtimestamp(ts_ms / 1000, tz=UTC)
+        return max((datetime.now(tz=UTC) - first_dt).days, 0)
 
     async def validate_address(self, address: str) -> bool:
         """HL uses ETH-compatible 0x addresses."""

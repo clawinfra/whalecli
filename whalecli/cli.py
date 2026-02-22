@@ -17,11 +17,10 @@ from __future__ import annotations
 
 import asyncio
 import csv
-import io
 import json
 import sys
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -34,7 +33,7 @@ from whalecli.exceptions import WhalecliError
 from whalecli.output import format_output, mask_api_key
 
 SUPPORTED_CHAINS = ["ETH", "BTC", "HL"]
-SUPPORTED_CHAINS_ALL = SUPPORTED_CHAINS + ["ALL"]
+SUPPORTED_CHAINS_ALL = [*SUPPORTED_CHAINS, "ALL"]
 
 
 # ── Error handler ─────────────────────────────────────────────────────────────
@@ -86,7 +85,7 @@ def cli(ctx: click.Context, config_path: str | None, output_format: str | None) 
     ctx.ensure_object(dict)
     try:
         config = load_config(config_path)
-    except WhalecliError as e:
+    except WhalecliError:
         # On config errors, use defaults (so config init still works)
         from whalecli.config import WhalecliConfig
 
@@ -333,8 +332,9 @@ def scan_command(
                     details={"chain": chain},
                 )
 
-            scan_time = datetime.now(tz=timezone.utc).isoformat()
-            scan_id = f"scan_{datetime.now(tz=timezone.utc).strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:4]}"
+            scan_time = datetime.now(tz=UTC).isoformat()
+            ts = datetime.now(tz=UTC).strftime("%Y%m%d_%H%M%S")
+            scan_id = f"scan_{ts}_{uuid.uuid4().hex[:4]}"
 
             # Score each wallet
             scored_wallets: list[dict[str, Any]] = []
@@ -354,7 +354,7 @@ def scan_command(
                 tasks = [_fetch_wallet_txns(w, hours, fetcher) for w in chain_wallets]
                 results = await asyncio.gather(*tasks, return_exceptions=True)
 
-                for w, txn_result in zip(chain_wallets, results):
+                for w, txn_result in zip(chain_wallets, results, strict=False):
                     txns: list[Any]
                     if isinstance(txn_result, (Exception, BaseException)):
                         txns = []
@@ -533,7 +533,7 @@ def alert_set(
                 "window": window,
                 "chain": chain,
                 "webhook_url": webhook_url,
-                "created_at": datetime.now(tz=timezone.utc).isoformat(),
+                "created_at": datetime.now(tz=UTC).isoformat(),
                 "active": True,
             }
             await db.save_alert_rule(rule)
@@ -656,7 +656,7 @@ def report_command(
         sys.exit(1)
 
     async def _run() -> dict[str, Any]:
-        generated_at = datetime.now(tz=timezone.utc).isoformat()
+        generated_at = datetime.now(tz=UTC).isoformat()
 
         async with _db_from_config(config) as db:
             if summary:
@@ -699,7 +699,7 @@ def report_command(
                     "accumulating" if agg_net > 0 else "distributing" if agg_net < 0 else "neutral"
                 )
 
-                report_id = f"summary_{datetime.now(tz=timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+                report_id = f"summary_{datetime.now(tz=UTC).strftime('%Y%m%d_%H%M%S')}"
                 return {
                     "report_id": report_id,
                     "generated_at": generated_at,
@@ -752,7 +752,7 @@ def report_command(
                         }
                     )
 
-                report_id = f"report_{datetime.now(tz=timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+                report_id = f"report_{datetime.now(tz=UTC).strftime('%Y%m%d_%H%M%S')}"
                 return {
                     "report_id": report_id,
                     "generated_at": generated_at,

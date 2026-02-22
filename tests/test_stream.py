@@ -4,9 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-import sys
 from decimal import Decimal
-from io import StringIO
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest

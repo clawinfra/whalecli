@@ -3,17 +3,13 @@
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from click.testing import CliRunner
 
 from whalecli.cli import cli
-from whalecli.config import WhalecliConfig
-from whalecli.db import Database
 
 
 @pytest.fixture

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 import pytest_asyncio
@@ -32,7 +32,7 @@ async def test_get_cached_transactions_with_fresh_cache(db: Database) -> None:
     """get_cached_transactions returns list when cache is fresh."""
     address = "0xfresh_wallet"
     chain = "ETH"
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     from_ts = (now - timedelta(hours=24)).isoformat()
     to_ts = now.isoformat()
 
@@ -70,7 +70,7 @@ async def test_remove_wallet_with_purge(db: Database) -> None:
                 "chain": "ETH",
                 "tx_hash": "0xpurge_tx",
                 "block_num": 100,
-                "timestamp": datetime.now(tz=timezone.utc).isoformat(),
+                "timestamp": datetime.now(tz=UTC).isoformat(),
                 "from_addr": address.lower(),
                 "to_addr": "0xrecipient",
                 "value_native": "1.0",
@@ -119,7 +119,7 @@ async def test_save_alert_with_webhook_status(db: Database) -> None:
         "score": 85,
         "direction": "accumulating",
         "net_flow_usd": 5_000_000.0,
-        "triggered_at": datetime.now(tz=timezone.utc).isoformat(),
+        "triggered_at": datetime.now(tz=UTC).isoformat(),
         "rule_id": "rule_001",
         "webhook_sent": True,
         "webhook_status": 200,
@@ -138,7 +138,7 @@ async def test_update_alert_webhook(db: Database) -> None:
         "score": 80,
         "direction": "neutral",
         "net_flow_usd": 0.0,
-        "triggered_at": datetime.now(tz=timezone.utc).isoformat(),
+        "triggered_at": datetime.now(tz=UTC).isoformat(),
         "rule_id": "auto",
     }
     saved = await db.save_alert(alert)
@@ -155,7 +155,7 @@ async def test_update_alert_webhook(db: Database) -> None:
 @pytest.mark.asyncio
 async def test_list_alerts_chain_filter(db: Database) -> None:
     """list_alerts with chain filter returns only matching chain."""
-    now = datetime.now(tz=timezone.utc).isoformat()
+    now = datetime.now(tz=UTC).isoformat()
     await db.save_alert(
         {
             "address": "0xeth_alert",
@@ -190,7 +190,7 @@ async def test_list_alerts_chain_filter(db: Database) -> None:
 async def test_list_alerts_since_hours(db: Database) -> None:
     """list_alerts with since_hours filters recent alerts."""
     old_time = "2020-01-01T00:00:00+00:00"
-    now = datetime.now(tz=timezone.utc).isoformat()
+    now = datetime.now(tz=UTC).isoformat()
 
     await db.save_alert(
         {

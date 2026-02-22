@@ -20,7 +20,7 @@ from pathlib import Path
 
 import toml
 
-from whalecli.exceptions import ConfigInvalidError, ConfigMissingError
+from whalecli.exceptions import ConfigInvalidError
 
 # Default config directory and file
 DEFAULT_CONFIG_DIR = Path.home() / ".whalecli"

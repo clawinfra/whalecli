@@ -13,6 +13,10 @@ Exit code mapping:
   6 — DatabaseError (SQLite failure)
 """
 
+from __future__ import annotations
+
+from typing import Any
+
 
 class WhalecliError(Exception):
     """Base exception for all whalecli errors."""
@@ -51,7 +55,7 @@ class RateLimitError(APIError):
 
     error_code = "rate_limited"
 
-    def __init__(self, message: str, retry_after: int = 60, **kwargs) -> None:
+    def __init__(self, message: str, retry_after: int = 60, **kwargs: Any) -> None:
         super().__init__(message, details={"retry_after_seconds": retry_after})
         self.retry_after = retry_after
 

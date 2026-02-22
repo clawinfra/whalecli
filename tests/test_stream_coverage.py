@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -41,7 +40,7 @@ def _make_transaction(
         chain="ETH",
         from_addr="0xsender",
         to_addr=to_addr,
-        timestamp=datetime.now(tz=timezone.utc).isoformat(),
+        timestamp=datetime.now(tz=UTC).isoformat(),
         value_native=Decimal("5.0"),
         block_num=100,
         value_usd=value_usd,

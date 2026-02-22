@@ -70,7 +70,7 @@ class BaseFetcher(Protocol):
         ...
 
 
-def get_fetcher(chain: str, config: "WhalecliConfig") -> BaseFetcher:
+def get_fetcher(chain: str, config: WhalecliConfig) -> BaseFetcher:
     """
     Factory: return the correct fetcher for the given chain.
 
