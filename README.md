@@ -165,10 +165,12 @@ for line in process.stdout:
 ### Exit Codes
 
 - `0` — Success
-- `1` — CLI error (invalid args, file not found)
+- `1` — CLI error (invalid args, file not found, no results)
 - `2` — API error (rate limit, invalid key)
 - `3` — Network error (timeout, connection failed)
 - `4` — Data error (invalid address, no transactions found)
+- `5` — Config error (missing or malformed config)
+- `6` — Database error (SQLite failure)
 
 Agents can use exit codes for conditional logic:
 
